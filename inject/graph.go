@@ -23,11 +23,12 @@
 // of the associated type. The second triggers creation of a private instance
 // for the associated type. Finally the last form is asking for a named
 // dependency called "dev logger".
-package gobean
+package inject
 
 import (
 	"errors"
 	"fmt"
+	"github.com/erkesi/gobean"
 	"reflect"
 	"strconv"
 	"strings"
@@ -54,10 +55,12 @@ type object struct {
 // String representation suitable for human consumption.
 func (o *object) String() string {
 	var builder strings.Builder
+	builder.WriteString(`"`)
 	builder.WriteString(o.reflectType.String())
 	if o.name != "" {
 		builder.WriteString(fmt.Sprintf(" named %s", o.name))
 	}
+	builder.WriteString(`"`)
 	return builder.String()
 }
 
@@ -154,13 +157,13 @@ func (g *graph) provide(objects ...*object) error {
 			g.named[o.name] = o
 		}
 
-		if log != nil {
+		if gobean.Log != nil {
 			if o.created {
-				log.Debugf("created %s", o)
+				gobean.Log.Debugf("created %s", o)
 			} else if o.embedded {
-				log.Debugf("provided embedded %s", o)
+				gobean.Log.Debugf("provided embedded %s", o)
 			} else {
-				log.Debugf("provided %s", o)
+				gobean.Log.Debugf("provided %s", o)
 			}
 		}
 	}
@@ -309,8 +312,8 @@ StructLoop:
 			}
 
 			field.Set(reflect.ValueOf(existing.value))
-			if log != nil {
-				log.Debugf(
+			if gobean.Log != nil {
+				gobean.Log.Debugf(
 					"assigned %s to field %s in %s",
 					existing,
 					o.reflectType.Elem().Field(i).Name,
@@ -367,8 +370,8 @@ StructLoop:
 			}
 
 			field.Set(reflect.MakeMap(fieldType))
-			if log != nil {
-				log.Debugf(
+			if gobean.Log != nil {
+				gobean.Log.Debugf(
 					"made map for field %s in %s",
 					o.reflectType.Elem().Field(i).Name,
 					o,
@@ -395,8 +398,8 @@ StructLoop:
 				}
 				if existing.reflectType.AssignableTo(fieldType) {
 					field.Set(reflect.ValueOf(existing.value))
-					if log != nil {
-						log.Debugf(
+					if gobean.Log != nil {
+						gobean.Log.Debugf(
 							"assigned existing %s to field %s in %s",
 							existing,
 							o.reflectType.Elem().Field(i).Name,
@@ -424,8 +427,8 @@ StructLoop:
 
 		// Finally assign the newly created object to our field.
 		field.Set(newValue)
-		if log != nil {
-			log.Debugf(
+		if gobean.Log != nil {
+			gobean.Log.Debugf(
 				"assigned newly created %s to field %s in %s",
 				newObject,
 				o.reflectType.Elem().Field(i).Name,
@@ -510,8 +513,8 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 				}
 				found = existing
 				field.Set(reflect.ValueOf(existing.value))
-				if log != nil {
-					log.Debugf(
+				if gobean.Log != nil {
+					gobean.Log.Debugf(
 						"assigned existing %s to interface field %s in %s",
 						existing,
 						o.reflectType.Elem().Field(i).Name,

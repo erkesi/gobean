@@ -1,15 +1,16 @@
-package gobean
+package inject
 
 import (
 	"fmt"
+	"github.com/erkesi/gobean"
+	graphtesta "github.com/erkesi/gobean/inject/graphtesta"
+	graphtestb "github.com/erkesi/gobean/inject/graphtestb"
 	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	graphtesta "github.com/erkesi/gobean/graphtesta"
-	graphtestb "github.com/erkesi/gobean/graphtestb"
 	"github.com/facebookgo/ensure"
 )
 
@@ -81,7 +82,7 @@ func TestErrorOnNonPointerInject(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "found inject tag on unsupported field A in type *gobean.TypeWithNonPointerInject"
+	const msg = "found inject tag on unsupported field A in type *inject.TypeWithNonPointerInject"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -98,7 +99,7 @@ func TestErrorOnNonPointerStructInject(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "found inject tag on unsupported field A in type *gobean.TypeWithNonPointerStructInject"
+	const msg = "found inject tag on unsupported field A in type *inject.TypeWithNonPointerStructInject"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -179,7 +180,7 @@ func TestTagWithJustColon(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "unexpected tag format `inject:` for field A in type *gobean.TypeWithJustColon"
+	const msg = "unexpected tag format `inject:` for field A in type *inject.TypeWithJustColon"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -196,7 +197,7 @@ func TestTagWithOpenQuote(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "unexpected tag format `inject:\"` for field A in type *gobean.TypeWithOpenQuote"
+	const msg = "unexpected tag format `inject:\"` for field A in type *inject.TypeWithOpenQuote"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -209,7 +210,7 @@ func TestProvideWithFields(t *testing.T) {
 	a := &TypeAnswerStruct{}
 	err := g.provide(&object{value: a, fields: map[string]*object{}})
 	ensure.NotNil(t, err)
-	ensure.DeepEqual(t, err.Error(), "fields were specified on object *gobean.TypeAnswerStruct when it was provided")
+	ensure.DeepEqual(t, err.Error(), "fields were specified on object \"*inject.TypeAnswerStruct\" when it was provided")
 }
 
 func TestProvideNonPointer(t *testing.T) {
@@ -259,7 +260,7 @@ func TestProvideTwoOfTheSame(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean.TypeAnswerStruct"
+	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean/inject.TypeAnswerStruct"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -272,7 +273,7 @@ func TestProvideTwoOfTheSameWithpopulate(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean.TypeAnswerStruct"
+	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean/inject.TypeAnswerStruct"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -370,7 +371,7 @@ func TestTagWithMissingNamed(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "did not find object named foo required by field A in type *gobean.TypeWithMissingNamed"
+	const msg = "did not find object named foo required by field A in type *inject.TypeWithMissingNamed"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -425,7 +426,7 @@ func TestInjectInterfaceMissing(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "found no assignable value for field Answerable in type *gobean.TypeInjectInterfaceMissing"
+	const msg = "found no assignable value for field Answerable in type *inject.TypeInjectInterfaceMissing"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -475,7 +476,7 @@ func TestInvalidNamedInstanceType(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "object named foo of type *gobean.TypeNestedStruct is not assignable to field A (*gobean.TypeAnswerStruct) in type *gobean.TypeWithInvalidNamedType"
+	const msg = "object named foo of type *inject.TypeNestedStruct is not assignable to field A (*inject.TypeAnswerStruct) in type *inject.TypeWithInvalidNamedType"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -492,7 +493,7 @@ func TestInjectOnPrivateField(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "inject requested on unexported field a in type *gobean.TypeWithInjectOnPrivateField"
+	const msg = "inject requested on unexported field a in type *inject.TypeWithInjectOnPrivateField"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -509,7 +510,7 @@ func TestInjectOnPrivateInterfaceField(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "inject requested on unexported field a in type *gobean.TypeWithInjectOnPrivateField"
+	const msg = "inject requested on unexported field a in type *inject.TypeWithInjectOnPrivateField"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -527,7 +528,7 @@ func TestInjectPrivateInterface(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "found private inject tag on interface field Answerable in type *gobean.TypeInjectPrivateInterface"
+	const msg = "found private inject tag on interface field Answerable in type *inject.TypeInjectPrivateInterface"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -546,7 +547,7 @@ func TestInjectTwoSatisfyInterface(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "found two assignable values for field Answerable in type *gobean.TypeInjectTwoSatisfyInterface. one type *gobean.TypeAnswerStruct with value &{0 0} and another type *gobean.TypeNestedStruct with value"
+	const msg = "found two assignable values for field Answerable in type *inject.TypeInjectTwoSatisfyInterface. one type *inject.TypeAnswerStruct with value &{0 0} and another type *inject.TypeNestedStruct with value"
 	if !strings.HasPrefix(err.Error(), msg) {
 		t.Fatalf("expected prefix:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -572,7 +573,7 @@ func TestInjectNamedTwoSatisfyInterface(t *testing.T) {
 		t.Fatal("was expecting error")
 	}
 
-	const msg = "found two assignable values for field Answerable in type *gobean.TypeInjectNamedTwoSatisfyInterface. one type *gobean.TypeAnswerStruct with value &{0 0} and another type *gobean.TypeNestedStruct with value"
+	const msg = "found two assignable values for field Answerable in type *inject.TypeInjectNamedTwoSatisfyInterface. one type *inject.TypeAnswerStruct with value &{0 0} and another type *inject.TypeNestedStruct with value"
 	if !strings.HasPrefix(err.Error(), msg) {
 		t.Fatalf("expected prefix:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -596,7 +597,7 @@ func TestInjectNamedOnPrivateInterfaceField(t *testing.T) {
 		t.Fatal("was expecting error")
 	}
 
-	const msg = "inject requested on unexported field a in type *gobean.TypeWithInjectNamedOnPrivateInterfaceField"
+	const msg = "inject requested on unexported field a in type *inject.TypeWithInjectNamedOnPrivateInterfaceField"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -688,7 +689,7 @@ func TestInjectInvalidInline(t *testing.T) {
 		t.Fatal("was expecting an error")
 	}
 
-	const msg = `inline requested on non inlined field A in type *struct { A *gobean.TypeAnswerStruct "inject:\"inline\"" }`
+	const msg = `inline requested on non inlined field A in type *struct { A *inject.TypeAnswerStruct "inject:\"inline\"" }`
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -706,7 +707,7 @@ func TestInjectInlineMissing(t *testing.T) {
 		t.Fatal("was expecting an error")
 	}
 
-	const msg = `inline struct on field Inline in type *struct { Inline struct { B *gobean.TypeNestedStruct "inject:\"\"" } "inject:\"\"" } requires an explicit "inline" tag`
+	const msg = `inline struct on field Inline in type *struct { Inline struct { B *inject.TypeNestedStruct "inject:\"\"" } "inject:\"\"" } requires an explicit "inline" tag`
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -726,7 +727,7 @@ func TestInjectInlinePrivate(t *testing.T) {
 		t.Fatal("was expecting an error")
 	}
 
-	const msg = "cannot use private inject on inline struct on field Inline in type *gobean.TypeWithInlineStructWithPrivate"
+	const msg = "cannot use private inject on inline struct on field Inline in type *inject.TypeWithInlineStructWithPrivate"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -851,7 +852,7 @@ func TestInjectMapWithoutPrivate(t *testing.T) {
 		t.Fatalf("expected error for %+v", v)
 	}
 
-	const msg = "inject on map field A in type *gobean.TypeInjectWithMapWithoutPrivate must be named or private"
+	const msg = "inject on map field A in type *inject.TypeInjectWithMapWithoutPrivate must be named or private"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -886,10 +887,10 @@ func TestObjectString(t *testing.T) {
 	}
 
 	ensure.SameElements(t, actual, []string{
-		"*gobean.TypeForObjectString",
-		"*gobean.TypeNestedStruct",
-		"*gobean.TypeNestedStruct named foo",
-		"*gobean.TypeAnswerStruct",
+		"\"*inject.TypeAnswerStruct\"",
+		"\"*inject.TypeNestedStruct named foo\"",
+		"\"*inject.TypeNestedStruct\"",
+		"\"*inject.TypeForObjectString\"",
 	})
 }
 
@@ -918,11 +919,11 @@ func TestGraphObjects(t *testing.T) {
 	}
 
 	ensure.SameElements(t, actual, []string{
-		"*gobean.TypeAnswerStruct",
-		"*gobean.TypeForGraphObjects",
-		"*gobean.TypeNestedStruct named foo",
-		"*gobean.TypeNestedStruct",
-		`*struct { B *gobean.TypeNestedStruct "inject:\"\"" }`,
+		"\"*inject.TypeAnswerStruct\"",
+		"\"*inject.TypeForGraphObjects\"",
+		"\"*inject.TypeNestedStruct named foo\"",
+		"\"*inject.TypeNestedStruct\"",
+		`"*struct { B *inject.TypeNestedStruct "inject:\"\"" }"`,
 	})
 }
 
@@ -966,17 +967,17 @@ type TypeForLogging struct {
 
 // todo
 func InjectLogging(t *testing.T) {
-	SetLogger(&logger{
+	gobean.SetLogger(&logger{
 		Expected: []string{
-			"provided *gobean.TypeForLoggingCreated named name_for_logging",
-			"provided *gobean.TypeForLogging",
-			"provided embedded *gobean.TypeForLoggingEmbedded",
-			"created *gobean.TypeForLoggingCreated",
-			"assigned newly created *gobean.TypeForLoggingCreated to field TypeForLoggingCreated in *gobean.TypeForLogging",
-			"assigned existing *gobean.TypeForLoggingCreated to field TypeForLoggingCreated in *gobean.TypeForLoggingEmbedded",
-			"assigned *gobean.TypeForLoggingCreated named name_for_logging to field TypeForLoggingCreatedNamed in *gobean.TypeForLoggingEmbedded",
-			"made map for field Map in *gobean.TypeForLoggingEmbedded",
-			"assigned existing *gobean.TypeForLoggingCreated to interface field TypeForLoggingInterface in *gobean.TypeForLoggingEmbedded",
+			"provided *inject.TypeForLoggingCreated named name_for_logging",
+			"provided *inject.TypeForLogging",
+			"provided embedded *inject.TypeForLoggingEmbedded",
+			"created *inject.TypeForLoggingCreated",
+			"assigned newly created *inject.TypeForLoggingCreated to field TypeForLoggingCreated in *inject.TypeForLogging",
+			"assigned existing *inject.TypeForLoggingCreated to field TypeForLoggingCreated in *inject.TypeForLoggingEmbedded",
+			"assigned *inject.TypeForLoggingCreated named name_for_logging to field TypeForLoggingCreatedNamed in *inject.TypeForLoggingEmbedded",
+			"made map for field Map in *inject.TypeForLoggingEmbedded",
+			"assigned existing *inject.TypeForLoggingCreated to interface field TypeForLoggingInterface in *inject.TypeForLoggingEmbedded",
 		},
 		T: t,
 	})

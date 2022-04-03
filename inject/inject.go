@@ -1,4 +1,4 @@
-package gobean
+package inject
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ type ObjectClose interface {
 
 var g = &graph{refType2InjectFieldIndies: map[reflect.Type]map[int]struct{}{}}
 
-func InitInject() {
+func Init() {
 	g.Do(func() {
 		if err := g.populate(); err != nil {
 			panic(err)
@@ -29,7 +29,7 @@ func InitInject() {
 	})
 }
 
-func CloseInject() {
+func Close() {
 	for i := len(g.objects()) - 1; i >= 0; i-- {
 		closeFn := g.objects()[i].closeFn
 		if closeFn != nil {
@@ -38,11 +38,19 @@ func CloseInject() {
 	}
 }
 
-type ProvideOptFunc func(opt *provideOpt)
+func PrintObjects() []string {
+	var r []string
+	for _, o := range g.objects() {
+		r = append(r, o.String())
+	}
+	return r
+}
+
+type ProvideFunc func(opt *provideOpt)
 
 // ProvideWithPriority
 // priority 越大越先初始化（在按照依赖顺序的前提下）
-func ProvideWithPriority(priority int64) ProvideOptFunc {
+func ProvideWithPriority(priority int64) ProvideFunc {
 	return func(opt *provideOpt) {
 		opt.priority = priority
 	}
@@ -52,7 +60,7 @@ type provideOpt struct {
 	priority int64
 }
 
-func provideOptsExec(opts ...ProvideOptFunc) *provideOpt {
+func provideOptsExec(opts ...ProvideFunc) *provideOpt {
 	opt := &provideOpt{}
 	for _, fn := range opts {
 		fn(opt)
@@ -63,7 +71,7 @@ func provideOptsExec(opts ...ProvideOptFunc) *provideOpt {
 // ProvideByName 通过名字注入实例
 // @param name string "名字"
 // @param value interface 实例
-func ProvideByName(name string, value interface{}, opts ...ProvideOptFunc) {
+func ProvideByName(name string, value interface{}, opts ...ProvideFunc) {
 	opt := provideOptsExec(opts...)
 	if err := g.provide(&object{
 		priority: opt.priority,
@@ -77,7 +85,7 @@ func ProvideByName(name string, value interface{}, opts ...ProvideOptFunc) {
 // ProvideByValue
 // @description 通过实例类型注入实例
 // @param value 实例
-func ProvideByValue(value interface{}, opts ...ProvideOptFunc) {
+func ProvideByValue(value interface{}, opts ...ProvideFunc) {
 	opt := provideOptsExec(opts...)
 	if err := g.provide(&object{
 		priority: opt.priority,

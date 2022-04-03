@@ -4,7 +4,7 @@ import (
 	"sort"
 )
 
-var log Logger
+var Log Logger
 
 type state int8
 
@@ -98,7 +98,7 @@ func callback(s state) {
 }
 
 func SetLogger(logger Logger) {
-	log = logger
+	Log = logger
 }
 
 type Logger interface {
