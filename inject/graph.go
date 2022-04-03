@@ -28,7 +28,7 @@ package inject
 import (
 	"errors"
 	"fmt"
-	"github.com/erkesi/gobean"
+	"github.com/erkesi/gobean/log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -106,10 +106,10 @@ func (g *graph) provide(objects ...*object) error {
 			g.index2Object = make(map[int64]*object)
 		}
 		g.index2Object[o.index] = o
-		if lc, ok := o.value.(ObjectInit); ok {
+		if lc, ok := o.value.(objectInit); ok {
 			o.initFn = lc.Init
 		}
-		if lc, ok := o.value.(ObjectClose); ok {
+		if lc, ok := o.value.(objectClose); ok {
 			o.closeFn = lc.Close
 		}
 		o.reflectType = reflect.TypeOf(o.value)
@@ -157,13 +157,13 @@ func (g *graph) provide(objects ...*object) error {
 			g.named[o.name] = o
 		}
 
-		if gobean.Log != nil {
+		if log.Log != nil {
 			if o.created {
-				gobean.Log.Debugf("created %s", o)
+				log.Log.Debugf("created %s", o)
 			} else if o.embedded {
-				gobean.Log.Debugf("provided embedded %s", o)
+				log.Log.Debugf("provided embedded %s", o)
 			} else {
-				gobean.Log.Debugf("provided %s", o)
+				log.Log.Debugf("provided %s", o)
 			}
 		}
 	}
@@ -312,8 +312,8 @@ StructLoop:
 			}
 
 			field.Set(reflect.ValueOf(existing.value))
-			if gobean.Log != nil {
-				gobean.Log.Debugf(
+			if log.Log != nil {
+				log.Log.Debugf(
 					"assigned %s to field %s in %s",
 					existing,
 					o.reflectType.Elem().Field(i).Name,
@@ -370,8 +370,8 @@ StructLoop:
 			}
 
 			field.Set(reflect.MakeMap(fieldType))
-			if gobean.Log != nil {
-				gobean.Log.Debugf(
+			if log.Log != nil {
+				log.Log.Debugf(
 					"made map for field %s in %s",
 					o.reflectType.Elem().Field(i).Name,
 					o,
@@ -398,8 +398,8 @@ StructLoop:
 				}
 				if existing.reflectType.AssignableTo(fieldType) {
 					field.Set(reflect.ValueOf(existing.value))
-					if gobean.Log != nil {
-						gobean.Log.Debugf(
+					if log.Log != nil {
+						log.Log.Debugf(
 							"assigned existing %s to field %s in %s",
 							existing,
 							o.reflectType.Elem().Field(i).Name,
@@ -427,8 +427,8 @@ StructLoop:
 
 		// Finally assign the newly created object to our field.
 		field.Set(newValue)
-		if gobean.Log != nil {
-			gobean.Log.Debugf(
+		if log.Log != nil {
+			log.Log.Debugf(
 				"assigned newly created %s to field %s in %s",
 				newObject,
 				o.reflectType.Elem().Field(i).Name,
@@ -513,8 +513,8 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 				}
 				found = existing
 				field.Set(reflect.ValueOf(existing.value))
-				if gobean.Log != nil {
-					gobean.Log.Debugf(
+				if log.Log != nil {
+					log.Log.Debugf(
 						"assigned existing %s to interface field %s in %s",
 						existing,
 						o.reflectType.Elem().Field(i).Name,

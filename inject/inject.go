@@ -5,11 +5,11 @@ import (
 	"reflect"
 )
 
-type ObjectInit interface {
+type objectInit interface {
 	Init()
 }
 
-type ObjectClose interface {
+type objectClose interface {
 	Close()
 }
 

@@ -10,7 +10,7 @@ import (
 
 var Hub = &hub{typeSet: make(map[reflect.Type]bool)}
 
-type ExtPt struct {
+type extPt struct {
 	t               reflect.Type
 	val             ExtensionPointer
 	index, priority int64
@@ -39,24 +39,24 @@ func extPtOptsExec(opts ...ExtPtFunc) *extPtOpt {
 }
 
 type hub struct {
-	extPts  []*ExtPt
+	extPts  []*extPt
 	typeSet map[reflect.Type]bool
 	m       sync.Map
 	index   int64
 }
 
-func (h *hub) Register(extPt ExtensionPointer, opts ...ExtPtFunc) {
-	t := reflect.TypeOf(extPt)
-	if h.typeSet[reflect.TypeOf(extPt)] {
+func (h *hub) Register(et ExtensionPointer, opts ...ExtPtFunc) {
+	t := reflect.TypeOf(et)
+	if h.typeSet[reflect.TypeOf(et)] {
 		panic(fmt.Sprintf("ExtensionPointer type(%s) exist", t.String()))
 	}
 	h.index = h.index + 1
 	opt := extPtOptsExec(opts...)
-	inject.ProvideByValue(extPt, inject.ProvideWithPriority(opt.priority))
-	h.typeSet[reflect.TypeOf(extPt)] = true
-	h.extPts = append(h.extPts, &ExtPt{
+	inject.ProvideByValue(et, inject.ProvideWithPriority(opt.priority))
+	h.typeSet[reflect.TypeOf(et)] = true
+	h.extPts = append(h.extPts, &extPt{
 		t:        t,
-		val:      extPt,
+		val:      et,
 		index:    h.index,
 		priority: opt.priority,
 	})

@@ -2,9 +2,9 @@ package inject
 
 import (
 	"fmt"
-	"github.com/erkesi/gobean"
 	graphtesta "github.com/erkesi/gobean/inject/graphtesta"
 	graphtestb "github.com/erkesi/gobean/inject/graphtestb"
+	"github.com/erkesi/gobean/log"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -965,9 +965,8 @@ type TypeForLogging struct {
 	TypeForLoggingCreated  *TypeForLoggingCreated `inject:""`
 }
 
-// todo
 func InjectLogging(t *testing.T) {
-	gobean.SetLogger(&logger{
+	log.Init(&logger{
 		Expected: []string{
 			"provided *inject.TypeForLoggingCreated named name_for_logging",
 			"provided *inject.TypeForLogging",

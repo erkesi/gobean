@@ -1,4 +1,4 @@
-package gobean
+package application
 
 import (
 	"sort"
