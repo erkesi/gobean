@@ -10,14 +10,15 @@ func Test_callbackOrders_sort(t *testing.T) {
 		{
 			name: "normal",
 			cos: callbackOrders{&callbackOrder{
-				Order:    1,
-				Callback: nil,
+				index:    1,
+				callback: nil,
 			}, &callbackOrder{
-				Order:    0,
-				Callback: nil,
+				index:    0,
+				callback: nil,
 			}, &callbackOrder{
-				Order:    2,
-				Callback: nil,
+				index:    2,
+				priority: 1,
+				callback: nil,
 			}},
 		},
 	}

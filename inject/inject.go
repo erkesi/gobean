@@ -2,6 +2,7 @@ package inject
 
 import (
 	"fmt"
+	"github.com/erkesi/gobean/log"
 	"reflect"
 )
 
@@ -23,6 +24,9 @@ func Init() {
 		for _, obj := range g.objects() {
 			initFn := obj.initFn
 			if initFn != nil {
+				if log.Log != nil {
+					log.Log.Debugf("init inject object(%v)", obj)
+				}
 				initFn()
 			}
 		}
@@ -33,17 +37,12 @@ func Close() {
 	for i := len(g.objects()) - 1; i >= 0; i-- {
 		closeFn := g.objects()[i].closeFn
 		if closeFn != nil {
+			if log.Log != nil {
+				log.Log.Debugf("close inject object(%v)", g.objects()[i])
+			}
 			closeFn()
 		}
 	}
-}
-
-func PrintObjects() []string {
-	var r []string
-	for _, o := range g.objects() {
-		r = append(r, o.String())
-	}
-	return r
 }
 
 type ProvideFunc func(opt *provideOpt)
@@ -68,8 +67,8 @@ func provideOptsExec(opts ...ProvideFunc) *provideOpt {
 	return opt
 }
 
-// ProvideByName 通过名字注入实例
-// @param name string "名字"
+// ProvideByName 通过命名注入实例
+// @param name string "命名"
 // @param value interface 实例
 func ProvideByName(name string, value interface{}, opts ...ProvideFunc) {
 	opt := provideOptsExec(opts...)
@@ -80,6 +79,16 @@ func ProvideByName(name string, value interface{}, opts ...ProvideFunc) {
 	}); err != nil {
 		panic(err)
 	}
+}
+
+// ObtainByName 通过命名获取实例
+// @param name string "命名"
+// @return 指定名字的实例
+func ObtainByName(name string) interface{} {
+	if obj, ok := g.named[name]; ok {
+		return obj.value
+	}
+	panic(fmt.Sprintf("not found name `%s` instance", name))
 }
 
 // ProvideByValue
@@ -93,16 +102,6 @@ func ProvideByValue(value interface{}, opts ...ProvideFunc) {
 	}); err != nil {
 		panic(err)
 	}
-}
-
-// ObtainByName 通过名字获取实例
-// @param name string "名字"
-// @return 指定名字的实例
-func ObtainByName(name string) interface{} {
-	if obj, ok := g.named[name]; ok {
-		return obj.value
-	}
-	panic(fmt.Sprintf("not found name `%s` instance", name))
 }
 
 // ObtainByType 通过值的类型（可以是interface或struct）获取实例
@@ -145,4 +144,12 @@ func ObtainByType(value interface{}) interface{} {
 		return realVal
 	}
 	panic("the value must be a reference pointer")
+}
+
+func PrintObjects() []string {
+	var r []string
+	for _, o := range g.objects() {
+		r = append(r, o.String())
+	}
+	return r
 }

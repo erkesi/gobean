@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -12,61 +13,73 @@ const (
 )
 
 type callbackOrder struct {
-	Order    int // order越小越先执行
-	Callback appStateCallback
+	index, priority int
+	callback        appStateCallback
+}
+
+func (c callbackOrder) String() string {
+	return fmt.Sprintf("index:%d, priority:%d", c.index, c.priority)
 }
 
 type callbackOrders []*callbackOrder
 
 func (cos callbackOrders) sort() {
 	sort.Slice(cos, func(i, j int) bool {
-		return cos[i].Order-cos[j].Order < 0
+		if cos[i].priority == cos[j].priority {
+			return cos[i].index < cos[j].index
+		}
+		return cos[i].priority > cos[j].priority
 	})
 }
 
 type appStateCallback func()
 
+var index int
+
 var state2CallbackOrders = map[state]callbackOrders{}
 
-func AddInitCallbackOrder(order int, callback appStateCallback) {
-	addCallbackOrders(stateInit, &callbackOrder{
-		Order:    order,
-		Callback: callback,
+// AddInitCallbackWithPriority  priority 越大越先调 callback
+func AddInitCallbackWithPriority(priority int, callback appStateCallback) {
+	index++
+	addCallbacks(stateInit, &callbackOrder{
+		index:    index,
+		priority: priority,
+		callback: callback,
 	})
 }
 
 func AddInitCallbacks(callbacks ...appStateCallback) {
 	var callbackOrders []*callbackOrder
 	for _, appStateCallback := range callbacks {
+		index++
 		callbackOrders = append(callbackOrders, &callbackOrder{
-			Order:    0,
-			Callback: appStateCallback,
+			index:    index,
+			callback: appStateCallback,
 		})
 	}
-	addCallbackOrders(stateInit, callbackOrders...)
+	addCallbacks(stateInit, callbackOrders...)
 }
 
-func AddCloseCallbackOrder(order int, callback appStateCallback) {
-	addCallbackOrders(stateClose, &callbackOrder{
-		Order:    order,
-		Callback: callback,
+// AddCloseCallbackWithPriority  priority 越大越先调 callback
+func AddCloseCallbackWithPriority(priority int, callback appStateCallback) {
+	index++
+	addCallbacks(stateClose, &callbackOrder{
+		index:    index,
+		priority: priority,
+		callback: callback,
 	})
 }
 
 func AddCloseCallbacks(callbacks ...appStateCallback) {
-	callbackOrders := toCallbackOrders(callbacks)
-	addCallbackOrders(stateClose, callbackOrders...)
-}
-
-func toCallbackOrders(callbacks []appStateCallback) []*callbackOrder {
 	var callbackOrders []*callbackOrder
 	for _, callback := range callbacks {
+		index++
 		callbackOrders = append(callbackOrders, &callbackOrder{
-			Order:    0,
-			Callback: callback,
+			index:    index,
+			callback: callback,
 		})
 	}
-	return callbackOrders
+	addCallbacks(stateClose, callbackOrders...)
 }
 
 func Init() {
@@ -77,7 +90,7 @@ func Close() {
 	callback(stateClose)
 }
 
-func addCallbackOrders(s state, callbackOrders ...*callbackOrder) {
+func addCallbacks(s state, callbackOrders ...*callbackOrder) {
 	if cos, ok := state2CallbackOrders[s]; ok {
 		cos = append(cos, callbackOrders...)
 		state2CallbackOrders[s] = cos
@@ -90,7 +103,7 @@ func callback(s state) {
 	if cos, ok := state2CallbackOrders[s]; ok {
 		cos.sort()
 		for _, co := range cos {
-			co.Callback()
+			co.callback()
 		}
 	}
 }

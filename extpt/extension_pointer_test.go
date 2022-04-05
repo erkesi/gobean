@@ -24,7 +24,7 @@ func (e *UserExtensionPointer1) Match(values ...interface{}) bool {
 }
 
 func (e *UserExtensionPointer1) Validate(user *User) (bool, error) {
-	return user.Id == 1, errors.New("Validate error")
+	return user.Id == 1, errors.New("validate error")
 }
 
 type UserExtensionPointer2 struct {
@@ -36,7 +36,7 @@ func (e *UserExtensionPointer2) Match(values ...interface{}) bool {
 }
 
 func (e *UserExtensionPointer2) Validate(user *User) (bool, error) {
-	return user.Id == 2, errors.New("Validate error")
+	return user.Id == 2, errors.New("validate error")
 }
 
 type User struct {
@@ -55,8 +55,8 @@ func TestInterfaceFunction2(t *testing.T) {
 	b, err, _ := ExecuteWithErr(DataValidateExtPt.Validate, &User{Id: 1})
 	fmt.Println(b.(bool))
 	fmt.Println(err)
-	if err.Error() != "Validate error" {
-		t.Fatalf("actual:%s, expected:%s", err.Error(), "Validate error")
+	if err.Error() != "validate error" {
+		t.Fatalf("actual:%s, expected:%s", err.Error(), "validate error")
 	}
 }
 

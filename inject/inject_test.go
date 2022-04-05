@@ -2,6 +2,8 @@ package inject
 
 import (
 	"fmt"
+	"github.com/erkesi/gobean/log"
+	"reflect"
 	"testing"
 )
 
@@ -21,11 +23,11 @@ type B struct {
 }
 
 func (b *B) Init() {
-	fmt.Println("B.init" + b.name)
+	fmt.Println("B.init " + b.name)
 }
 
 func (b *B) Close() {
-	fmt.Println("B.close")
+	fmt.Println("B.close " + b.name)
 }
 
 func (b B) String() string {
@@ -46,15 +48,44 @@ func (c *C) Close() {
 	fmt.Println("C.close")
 }
 
+type Log struct {
+}
+
+func (l Log) Debugf(format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
+}
+
 func Test_Inject(t *testing.T) {
+	log.Init(Log{})
 	ProvideByValue(&A{}, ProvideWithPriority(99))
-	ProvideByValue(&B{name: "hel"}, ProvideWithPriority(100))
-	ProvideByName("b", &B{name: "hel2"}, ProvideWithPriority(101))
+	ProvideByValue(&B{name: "unName"}, ProvideWithPriority(100))
+	ProvideByName("b", &B{name: "named"}, ProvideWithPriority(101))
 	c := &C{}
 	ProvideByValue(c)
+
 	Init()
-	t.Log(PrintObjects())
-	c = ObtainByType(c).(*C)
-	t.Log(c.B.name)
-	t.Log(c.B1.name)
+
+	if reflect.DeepEqual(PrintObjects(), []string{"*inject.B named b", "*inject.B", "*inject.A", "*inject.C"}) {
+		t.Fatal("Init() objects order error")
+		return
+	}
+
+	if c.B.name != "unName" {
+		t.Fatal("err")
+		return
+	}
+
+	if c.B1.name != "named" {
+		t.Fatal("err")
+		return
+	}
+
+	b := ObtainByName("b").(*B)
+
+	if b.name != "named" {
+		t.Fatal("err")
+		return
+	}
+
+	Close()
 }

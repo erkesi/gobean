@@ -13,7 +13,7 @@ import (
 func Execute(f interface{}, args ...interface{}) (interface{}, bool) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
-		panic("not func")
+		panic("args[0] kind not func")
 	}
 	if fn.Type().NumOut() != 1 {
 		panic(fmt.Sprintf("func `%v`, the number of returned parameters is not equal to 1", fn.Type()))
@@ -50,7 +50,7 @@ var errorType = reflect.TypeOf(e)
 func ExecuteWithErr(f interface{}, args ...interface{}) (interface{}, error, bool) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
-		panic("not func")
+		panic("args[0] kind not func")
 	}
 	if fn.Type().NumOut() != 2 {
 		panic(fmt.Sprintf("func `%v`, the number of returned parameters is not equal to 2", fn.Type()))

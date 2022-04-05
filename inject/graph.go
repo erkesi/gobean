@@ -1,4 +1,4 @@
-// Package gobean provides a reflect based injector. A large application built
+// Package inject provides a reflect based injector. A large application built
 // with dependency injection in mind will typically involve the boring work of
 // setting up the object graph. This library attempts to take care of this
 // boring work by creating and connecting the various objects. Its use involves
