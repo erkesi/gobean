@@ -26,7 +26,7 @@ go get github.com/erkesi/gobean/inject@latest
 
 > 在依赖关系的顺序下，再按照实例注入的优先级和顺序，完成实例的生命周期的管理
 
-- 封装了 [facebookarchive/inject](https://github.com/facebookarchive/inject)
+- 封装了 [facebookarchive/inject](https://github.com/facebookarchive/inject)，[inject 如何标签使用](https://pkg.go.dev/github.com/facebookgo/inject)
 
 - 简单增加实例的生命周期管理，Struct 类型 可以实现 Init() \ Close() 来实现初始化、销毁实例
 
