@@ -2,7 +2,9 @@
 
 > 每一个模块，都有测试用例，可以通过测试用例了解具体的使用方法
 
-## log 包，打印 gobean 项目下的包 debug 级别的日志
+## log 包
+
+> 打印 gobean 项目下的包 debug 级别的日志
 
 ```shell
 go get github.com/erkesi/gobean/log@latest
@@ -14,7 +16,9 @@ go get github.com/erkesi/gobean/log@latest
 
 > log.Init(logger Logger)
 
-## inject 包，依赖注入
+## inject 包
+
+> 依赖注入
 
 ```shell
 go get github.com/erkesi/gobean/inject@latest
@@ -56,7 +60,9 @@ go get github.com/erkesi/gobean/inject@latest
 
 > inject.PrintObjects()
 
-## extpt 包，扩展点能力
+## extpt 包
+
+> 扩展点能力
 
 ```shell
 go get github.com/erkesi/gobean/extpt@latest
@@ -80,13 +86,13 @@ go get github.com/erkesi/gobean/extpt@latest
 > extpt.ExecuteWithErr(f interface{}, args ...interface{}) (interface{}, error, bool)
 
 
-## application 包，应用启动与销毁
+## application 包
+
+> 应用启动与销毁回调函数的注册以及使用
 
 ```shell
 go get github.com/erkesi/gobean/application@latest
 ```
-
-> 应用启动与销毁回调函数的注册以及使用
 
 ### 方法
 
