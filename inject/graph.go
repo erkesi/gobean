@@ -37,8 +37,8 @@ import (
 
 // An object in the graph.
 type object struct {
-	index        int64
-	priority     int64
+	index        int
+	priority     int
 	value        interface{}
 	name         string             // Optional
 	complete     bool               // If true, the value will be considered complete
@@ -81,11 +81,11 @@ func (o *object) addDep(g *graph, fieldName string, dep *object) {
 // The graph of objects.
 type graph struct {
 	sync.Once
-	index                     int64
+	index                     int
 	unnamed                   []*object
 	unnamedType               map[reflect.Type]interface{}
 	named                     map[string]*object
-	index2Object              map[int64]*object
+	index2Object              map[int]*object
 	edges                     []Edge
 	nodes                     []EdgeNode
 	allNodes                  []EdgeNode
@@ -103,13 +103,13 @@ func (g *graph) provide(objects ...*object) error {
 			priority: o.priority,
 		})
 		if g.index2Object == nil {
-			g.index2Object = make(map[int64]*object)
+			g.index2Object = make(map[int]*object)
 		}
 		g.index2Object[o.index] = o
-		if lc, ok := o.value.(objectInit); ok {
+		if lc, ok := o.value.(ObjectInit); ok {
 			o.initFn = lc.Init
 		}
-		if lc, ok := o.value.(objectClose); ok {
+		if lc, ok := o.value.(ObjectClose); ok {
 			o.closeFn = lc.Close
 		}
 		o.reflectType = reflect.TypeOf(o.value)

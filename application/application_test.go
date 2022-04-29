@@ -1,31 +1,46 @@
 package application
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-func Test_callbackOrders_sort(t *testing.T) {
-	tests := []struct {
-		name string
-		cos  callbackOrders
-	}{
-		{
-			name: "normal",
-			cos: callbackOrders{&callbackOrder{
-				index:    1,
-				callback: nil,
-			}, &callbackOrder{
-				index:    0,
-				callback: nil,
-			}, &callbackOrder{
-				index:    2,
-				priority: 1,
-				callback: nil,
-			}},
-		},
+func Test_Callback(t *testing.T) {
+
+	var initCase []string
+	var closeCase []string
+
+	AddInitCallback(func() {
+		initCase = append(initCase, "init callback 1")
+	})
+	AddInitCallback(func() {
+		initCase = append(initCase, "init callback 2, Priority:100")
+	}, CallbackWithPriority(100))
+	AddInitCallback(func() {
+		initCase = append(initCase, "init callback 3, Priority:99")
+	}, CallbackWithPriority(99))
+
+	AddCloseCallback(func() {
+		closeCase = append(closeCase, "close callback 1")
+	})
+	AddCloseCallback(func() {
+		closeCase = append(closeCase, "close callback 2, Priority:100")
+	}, CallbackWithPriority(100))
+
+	AddCloseCallback(func() {
+		closeCase = append(closeCase, "close callback 3, Priority:99")
+	}, CallbackWithPriority(99))
+
+	// init
+	Init()
+	if !reflect.DeepEqual([]string{"init callback 2, Priority:100", "init callback 3, Priority:99", "init callback 1"}, initCase) {
+		t.Fatal("init case bug")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.cos.sort()
-			t.Log(tt.cos)
-		})
+
+	// close
+	Close()
+	if !reflect.DeepEqual([]string{"close callback 2, Priority:100", "close callback 3, Priority:99", "close callback 1"}, closeCase) {
+		t.Fatal("close case bug")
 	}
+
 }

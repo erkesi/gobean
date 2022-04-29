@@ -13,24 +13,24 @@ var Hub = &hub{typeSet: make(map[reflect.Type]bool)}
 type extPt struct {
 	t               reflect.Type
 	val             ExtensionPointer
-	index, priority int64
+	index, priority int
 }
 
-type ExtPtFunc func(opt *extPtOpt)
+type ExtPtOptFunc func(opt *extPtOpt)
 
 // ExtPtWithPriority
 // priority 越大越先初始化（在按照依赖顺序的前提下）
-func ExtPtWithPriority(priority int64) ExtPtFunc {
+func ExtPtWithPriority(priority int) ExtPtOptFunc {
 	return func(opt *extPtOpt) {
 		opt.priority = priority
 	}
 }
 
 type extPtOpt struct {
-	priority int64
+	priority int
 }
 
-func extPtOptsExec(opts ...ExtPtFunc) *extPtOpt {
+func extPtOptsExec(opts ...ExtPtOptFunc) *extPtOpt {
 	opt := &extPtOpt{}
 	for _, fn := range opts {
 		fn(opt)
@@ -42,10 +42,10 @@ type hub struct {
 	extPts  []*extPt
 	typeSet map[reflect.Type]bool
 	m       sync.Map
-	index   int64
+	index   int
 }
 
-func (h *hub) Register(et ExtensionPointer, opts ...ExtPtFunc) {
+func (h *hub) Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
 	t := reflect.TypeOf(et)
 	if h.typeSet[reflect.TypeOf(et)] {
 		panic(fmt.Sprintf("ExtensionPointer type(%s) exist", t.String()))

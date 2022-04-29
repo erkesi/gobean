@@ -14,7 +14,7 @@ const (
 
 type callbackOrder struct {
 	index, priority int
-	callback        appStateCallback
+	callback        Callback
 }
 
 func (c callbackOrder) String() string {
@@ -32,54 +32,32 @@ func (cos callbackOrders) sort() {
 	})
 }
 
-type appStateCallback func()
+type Callback func()
 
 var index int
 
 var state2CallbackOrders = map[state]callbackOrders{}
 
-// AddInitCallbackWithPriority  priority 越大越先调 callback
-func AddInitCallbackWithPriority(priority int, callback appStateCallback) {
+// AddInitCallback init callback
+func AddInitCallback(callback Callback, opts ...CallbackOptFunc) {
+	opt := optsExec(opts...)
 	index++
 	addCallbacks(stateInit, &callbackOrder{
 		index:    index,
-		priority: priority,
+		priority: opt.priority,
 		callback: callback,
 	})
 }
 
-func AddInitCallbacks(callbacks ...appStateCallback) {
-	var callbackOrders []*callbackOrder
-	for _, appStateCallback := range callbacks {
-		index++
-		callbackOrders = append(callbackOrders, &callbackOrder{
-			index:    index,
-			callback: appStateCallback,
-		})
-	}
-	addCallbacks(stateInit, callbackOrders...)
-}
-
-// AddCloseCallbackWithPriority  priority 越大越先调 callback
-func AddCloseCallbackWithPriority(priority int, callback appStateCallback) {
+// AddCloseCallback close callback
+func AddCloseCallback(callback Callback, opts ...CallbackOptFunc) {
+	opt := optsExec(opts...)
 	index++
 	addCallbacks(stateClose, &callbackOrder{
 		index:    index,
-		priority: priority,
+		priority: opt.priority,
 		callback: callback,
 	})
-}
-
-func AddCloseCallbacks(callbacks ...appStateCallback) {
-	var callbackOrders []*callbackOrder
-	for _, callback := range callbacks {
-		index++
-		callbackOrders = append(callbackOrders, &callbackOrder{
-			index:    index,
-			callback: callback,
-		})
-	}
-	addCallbacks(stateClose, callbackOrders...)
 }
 
 func Init() {
@@ -106,4 +84,26 @@ func callback(s state) {
 			co.callback()
 		}
 	}
+}
+
+type CallbackOptFunc func(opt *callbackOpt)
+
+// CallbackWithPriority
+// priority 越大越先初始化
+func CallbackWithPriority(priority int) CallbackOptFunc {
+	return func(opt *callbackOpt) {
+		opt.priority = priority
+	}
+}
+
+type callbackOpt struct {
+	priority int
+}
+
+func optsExec(opts ...CallbackOptFunc) *callbackOpt {
+	opt := &callbackOpt{}
+	for _, fn := range opts {
+		fn(opt)
+	}
+	return opt
 }

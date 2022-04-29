@@ -57,6 +57,7 @@ func (l Log) Debugf(format string, v ...interface{}) {
 
 func Test_Inject(t *testing.T) {
 	log.Init(Log{})
+
 	ProvideByValue(&A{}, ProvideWithPriority(99))
 	ProvideByValue(&B{name: "unName"}, ProvideWithPriority(100))
 	ProvideByName("b", &B{name: "named"}, ProvideWithPriority(101))

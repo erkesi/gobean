@@ -6,11 +6,11 @@ import (
 	"reflect"
 )
 
-type objectInit interface {
+type ObjectInit interface {
 	Init()
 }
 
-type objectClose interface {
+type ObjectClose interface {
 	Close()
 }
 
@@ -45,21 +45,21 @@ func Close() {
 	}
 }
 
-type ProvideFunc func(opt *provideOpt)
+type ProvideOptFunc func(opt *provideOpt)
 
 // ProvideWithPriority
 // priority 越大越先初始化（在按照依赖顺序的前提下）
-func ProvideWithPriority(priority int64) ProvideFunc {
+func ProvideWithPriority(priority int) ProvideOptFunc {
 	return func(opt *provideOpt) {
 		opt.priority = priority
 	}
 }
 
 type provideOpt struct {
-	priority int64
+	priority int
 }
 
-func provideOptsExec(opts ...ProvideFunc) *provideOpt {
+func provideOptsExec(opts ...ProvideOptFunc) *provideOpt {
 	opt := &provideOpt{}
 	for _, fn := range opts {
 		fn(opt)
@@ -70,7 +70,7 @@ func provideOptsExec(opts ...ProvideFunc) *provideOpt {
 // ProvideByName 通过命名注入实例
 // @param name string "命名"
 // @param value interface 实例
-func ProvideByName(name string, value interface{}, opts ...ProvideFunc) {
+func ProvideByName(name string, value interface{}, opts ...ProvideOptFunc) {
 	opt := provideOptsExec(opts...)
 	if err := g.provide(&object{
 		priority: opt.priority,
@@ -94,7 +94,7 @@ func ObtainByName(name string) interface{} {
 // ProvideByValue
 // @description 通过实例类型注入实例
 // @param value 实例
-func ProvideByValue(value interface{}, opts ...ProvideFunc) {
+func ProvideByValue(value interface{}, opts ...ProvideOptFunc) {
 	opt := provideOptsExec(opts...)
 	if err := g.provide(&object{
 		priority: opt.priority,

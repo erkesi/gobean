@@ -30,11 +30,37 @@ go get github.com/erkesi/gobean/inject@latest
 
 - 简单增加实例的生命周期管理，Struct 类型 可以实现 Init() \ Close() 来实现初始化、销毁实例
 
+- 使用示例：[inject_test.go](inject/inject_test.go)
+
 ### 方法
+
+#### 实例的生命周期
+
+
+```go
+
+type B struct{
+}
+
+type A struct{
+	B *B `inject:""`
+}
+
+// Init, 实现 inject.ObjectInit 接口，完成实例的初始化
+func (a *A) Init() {
+}
+
+// Close, inject.ObjectClose 接口，完成实例的销毁
+func (a *A) Close(){
+}
+
+```
 
 #### 按照类型注入实例
 
-> inject.ProvideByValue(value interface{}, opts ...ProvideFunc)
+- 参数 opts: 可以为 inject.ProvideWithPriority(priority int) , 顺序【依赖关系与优先级（从大到小）】完成实例的初始化
+
+> inject.ProvideByValue(value interface{}, opts ...ProvideOptFunc)
 
 #### 依据类型获取实例
 
@@ -42,17 +68,19 @@ go get github.com/erkesi/gobean/inject@latest
 
 #### 按照命名注入实例
 
-> inject.ProvideByName(name string, value interface{}, opts ...ProvideFunc) 
+- 参数 opts: 可以为 inject.ProvideWithPriority(priority int) , 按照顺序【依赖关系与优先级（从大到小）】完成实例的初始化
+
+> inject.ProvideByName(name string, value interface{}, opts ...ProvideOptFunc) 
 
 #### 按照命名获取实例
 
 > inject.ObtainByName(name string) interface{}
 
-#### 初始化依赖注入关系以及完成实例的初始化（Init()）
+#### 完成依赖注入以及按照顺序【依赖关系与优先级（从大到小）】完成实例的初始化（Init()）
 
 > inject.Init()
 
-#### 按照依赖注入的关系逆向销毁实例（Close()）
+#### 实例初始化的逆向顺序销毁实例（Close()）
 
 > inject.Close()
 
@@ -72,6 +100,7 @@ go get github.com/erkesi/gobean/extpt@latest
 
 > 执行的时候，依据扩展点接口，找到多个实现，按照优先级逐个匹配，如果匹配（Match() == true），则执行后返回。
 
+> 使用示例：[extension_pointer_test](extpt/extension_pointer_test.go)
 
 ### 方法
 
@@ -94,15 +123,21 @@ go get github.com/erkesi/gobean/extpt@latest
 go get github.com/erkesi/gobean/application@latest
 ```
 
+> 使用示例：[application_test.go](application/application_test.go)
+
 ### 方法
 
 #### 注册应用启动回调函数 
 
-> application.AddInitCallbackWithPriority(priority int, callback appStateCallback)
+- 参数 opts: 可以为 application.CallbackWithPriority(priority int) , 顺序【优先级（从大到小）】执行 callback
+
+> application.AddInitCallback(callback appStateCallback, opts ...OptFunc)
 
 #### 注册应用销毁回调函数
 
-> application.AddCloseCallbackWithPriority(priority int, callback appStateCallback)
+- 参数 opts: 可以为 application.CallbackWithPriority(priority int) , 顺序【优先级（从大到小）】执行 callback
+
+> application.AddCloseCallback(callback appStateCallback, opts ...OptFunc)
 
 #### 应用初始化，按照优先级顺序（从大到小）调启动函数 
 

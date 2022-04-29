@@ -6,8 +6,8 @@ import (
 )
 
 type EdgeNode struct {
-	index    int64
-	priority int64
+	index    int
+	priority int
 }
 
 func (e EdgeNode) String() string {
