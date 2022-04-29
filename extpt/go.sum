@@ -1,7 +1,9 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/erkesi/gobean/inject v0.0.0-20220403151535-01fdf3462ea7 h1:Oscm58VjDmuAd1jpJwJ/uWSp0Y5UPElLNfirl7f8GH8=
-github.com/erkesi/gobean/inject v0.0.0-20220403151535-01fdf3462ea7/go.mod h1:x5Gi1GuOA0rIWxCMCtyPQ83Abqxf6aGX4pI0LLshfjs=
+github.com/erkesi/gobean/inject v0.0.0-20220425033115-4ac94a6bfd4d h1:78eETg7oqyiIeECyFzD8njlT6HsVGmt6mriqvO2NkMQ=
+github.com/erkesi/gobean/inject v0.0.0-20220425033115-4ac94a6bfd4d/go.mod h1:x5Gi1GuOA0rIWxCMCtyPQ83Abqxf6aGX4pI0LLshfjs=
+github.com/erkesi/gobean/inject v0.0.0-20220429155420-52e75d3a14cd h1:GjpE7m/V0VENcV648Ng4Oful+mJDyjC5CET71FYN4Ds=
+github.com/erkesi/gobean/inject v0.0.0-20220429155420-52e75d3a14cd/go.mod h1:x5Gi1GuOA0rIWxCMCtyPQ83Abqxf6aGX4pI0LLshfjs=
 github.com/erkesi/gobean/log v0.0.0-20220403150116-b44d1f639752 h1:/mPRSqzFrWpx8JFfYi4qWQIUqkcAIs2jW0QyimO9gGM=
 github.com/erkesi/gobean/log v0.0.0-20220403150116-b44d1f639752/go.mod h1:sc8fz1nXTzj1G0pW2F/FS/b51AXyzm0IRE1LQTEkEoI=
 github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c h1:8ISkoahWXwZR41ois5lSJBSVw4D0OV19Ht/JSTzvSv0=
