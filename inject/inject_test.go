@@ -1,6 +1,7 @@
 package inject
 
 import (
+	"errors"
 	"fmt"
 	"github.com/erkesi/gobean/log"
 	"reflect"
@@ -35,9 +36,10 @@ func (b B) String() string {
 }
 
 type C struct {
-	A  *A `inject:""`
-	B  *B `inject:""`
-	B1 *B `inject:"b"`
+	A     *A    `inject:""`
+	B     *B    `inject:""`
+	B1    *B    `inject:"b"`
+	Error error `inject:""`
 }
 
 func (c *C) Init() {
@@ -61,6 +63,9 @@ func Test_Inject(t *testing.T) {
 	ProvideByValue(&A{}, ProvideWithPriority(99))
 	ProvideByValue(&B{name: "unName"}, ProvideWithPriority(100))
 	ProvideByName("b", &B{name: "named"}, ProvideWithPriority(101))
+	errObj := errors.New("err")
+	ProvideByValue(errObj)
+
 	c := &C{}
 	ProvideByValue(c)
 
@@ -71,16 +76,31 @@ func Test_Inject(t *testing.T) {
 		return
 	}
 
-	if c.B.name != "unName" {
+	// obtain by struct type
+	c1 := ObtainByType(&C{}).(*C)
+	if c != c1 {
+		t.Fatal("err")
+		return
+	}
+	if c1.B.name != "unName" {
 		t.Fatal("err")
 		return
 	}
 
-	if c.B1.name != "named" {
+	if c1.B1.name != "named" {
 		t.Fatal("err")
 		return
 	}
 
+	// obtain by interface type
+	var err error
+	err = ObtainByType(&err).(error)
+	if err != errObj {
+		t.Fatal("err")
+		return
+	}
+
+	// obtain by name
 	b := ObtainByName("b").(*B)
 
 	if b.name != "named" {
