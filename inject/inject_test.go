@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/erkesi/gobean/log"
-	"reflect"
+	"github.com/facebookgo/ensure"
 	"testing"
 )
 
@@ -36,7 +36,8 @@ func (b B) String() string {
 }
 
 type C struct {
-	A     *A    `inject:""`
+	A1    *A    `inject:"private"`
+	A2    *A    `inject:"private"`
 	B     *B    `inject:""`
 	B1    *B    `inject:"b"`
 	Error error `inject:""`
@@ -71,10 +72,7 @@ func Test_Inject(t *testing.T) {
 
 	Init()
 
-	if reflect.DeepEqual(PrintObjects(), []string{"*inject.B named b", "*inject.B", "*inject.A", "*inject.C"}) {
-		t.Fatal("Init() objects order error")
-		return
-	}
+	ensure.SameElements(t, PrintObjects(), []string{"\"*inject.B named b\"", "\"*inject.B\"", "\"*inject.A\"", "\"*errors.errorString\"", "\"*inject.A\"", "\"*inject.A\"", "\"*inject.C\""})
 
 	// obtain by struct type
 	c1 := ObtainByType(&C{}).(*C)
