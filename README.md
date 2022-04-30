@@ -7,7 +7,7 @@
 > 打印 gobean 项目下的包 debug 级别的日志
 
 ```shell
-go get github.com/erkesi/gobean/log@latest
+go get -u github.com/erkesi/gobean/log
 ```
 
 ### 方法
@@ -21,7 +21,7 @@ go get github.com/erkesi/gobean/log@latest
 > 依赖注入
 
 ```shell
-go get github.com/erkesi/gobean/inject@latest
+go get -u github.com/erkesi/gobean/inject
 ```
 
 > 在依赖关系的顺序下，再按照实例注入的优先级和顺序，完成实例的生命周期的管理
@@ -93,7 +93,7 @@ func (a *A) Close(){
 > 扩展点能力
 
 ```shell
-go get github.com/erkesi/gobean/extpt@latest
+go get -u github.com/erkesi/gobean/extpt
 ```
 
 > 基于 inject 依赖注入的能力
@@ -120,7 +120,7 @@ go get github.com/erkesi/gobean/extpt@latest
 > 应用启动与销毁回调函数的注册以及使用
 
 ```shell
-go get github.com/erkesi/gobean/application@latest
+go get -u github.com/erkesi/gobean/application
 ```
 
 > 使用示例：[application_test.go](application/application_test.go)
