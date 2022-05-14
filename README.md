@@ -122,9 +122,9 @@ import github.com/erkesi/gobean/extpt
 
 #### 执行
 
-> extpt.Execute(f interface{}, args ...interface{}) (interface{}, bool)
+> extpt.Execute(f interface{}, args ...interface{}) (bool, interface{})
 
-> extpt.ExecuteWithErr(f interface{}, args ...interface{}) (interface{}, error, bool)
+> extpt.ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, error)
 
 
 ## application 包

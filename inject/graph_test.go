@@ -2,14 +2,15 @@ package inject
 
 import (
 	"fmt"
-	graphtesta "github.com/erkesi/gobean/inject/graphtesta"
-	graphtestb "github.com/erkesi/gobean/inject/graphtestb"
-	"github.com/erkesi/gobean/log"
 	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	graphtesta "github.com/erkesi/gobean/inject/graphtesta"
+	graphtestb "github.com/erkesi/gobean/inject/graphtestb"
+	"github.com/erkesi/gobean/log"
 
 	"github.com/facebookgo/ensure"
 )

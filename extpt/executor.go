@@ -8,9 +8,9 @@ import (
 // Execute 执行扩展点，接口方法返回值只有一个参数的情况
 // @param f interface "接口方法"
 // @param args []interface "接口方法参数"
-// @return value interface "接口方法返回值"
 // @return ok bool "是否匹配到了扩展点实例"
-func Execute(f interface{}, args ...interface{}) (interface{}, bool) {
+// @return value interface "接口方法返回值"
+func Execute(f interface{}, args ...interface{}) (bool, interface{}) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
 		panic("args[0] kind not func")
@@ -32,10 +32,10 @@ func Execute(f interface{}, args ...interface{}) (interface{}, bool) {
 		rets := matchFn.Call(input)
 		if rets[0].Bool() {
 			rets := fn.Call(input)
-			return rets[0].Interface(), true
+			return true, rets[0].Interface()
 		}
 	}
-	return nil, false
+	return false, nil
 }
 
 var e *error
@@ -44,10 +44,10 @@ var errorType = reflect.TypeOf(e)
 // ExecuteWithErr 执行扩展点，接口方法返回值只有两个参数，第二个参数是Error接口类型
 // @param f interface "接口方法"
 // @param args []interface "接口方法参数"
+// @return ok bool "是否匹配到了扩展点实例"
 // @return value interface "接口方法返回第一个值"
 // @return err Error "接口方法返回第二个值（Error类型）"
-// @return ok bool "是否匹配到了扩展点实例"
-func ExecuteWithErr(f interface{}, args ...interface{}) (interface{}, error, bool) {
+func ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, error) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
 		panic("args[0] kind not func")
@@ -77,10 +77,10 @@ func ExecuteWithErr(f interface{}, args ...interface{}) (interface{}, error, boo
 			if !rets[1].IsZero() {
 				err = rets[1].Interface().(error)
 			}
-			return rets[0].Interface(), err, true
+			return true, rets[0].Interface(), err
 		}
 	}
-	return nil, nil, false
+	return false, nil, nil
 }
 
 func find(fn reflect.Value) []ExtensionPointer {
