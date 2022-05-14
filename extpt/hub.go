@@ -2,10 +2,11 @@ package extpt
 
 import (
 	"fmt"
-	"github.com/erkesi/gobean/inject"
 	"reflect"
 	"sort"
 	"sync"
+
+	"github.com/erkesi/gobean/inject"
 )
 
 var Hub = &hub{typeSet: make(map[reflect.Type]bool)}
