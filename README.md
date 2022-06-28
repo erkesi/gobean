@@ -96,6 +96,42 @@ func (a *A) Close(){
 
 > inject.PrintObjects()
 
+## event 包
+
+> 事件的发布与订阅
+
+```go
+
+import github.com/erkesi/gobean/event
+
+```
+
+> 基于 inject 依赖注入的能力
+
+> 使用示例：[event_test.go](event/event_test.go)
+
+### 方法
+
+#### 注册事件处理器
+
+> event.Register(executors ...Executor)
+
+
+#### 设置事件默认处理器
+
+> event.SetDefaultExecutor(executor Executor)
+
+#### 发布事件
+
+> 发布（接口：[Publisher](event/publisher.go)）
+
+> Publish(ctx context.Context, event interface{}, opts ...PublishOpt) error 
+
+> 使用默认的事件发布器
+
+> &DefaultPublisher{}
+
+
 ## extpt 包
 
 > 扩展点能力
@@ -106,13 +142,11 @@ import github.com/erkesi/gobean/extpt
 
 ```
 
-
-
 > 基于 inject 依赖注入的能力
 
 > 执行的时候，依据扩展点接口，找到多个实现，按照优先级逐个匹配，如果匹配（Match() == true），则执行后返回。
 
-> 使用示例：[extension_pointer_test](extpt/extension_pointer_test.go)
+> 使用示例：[extension_pointer_test.go](extpt/extension_pointer_test.go)
 
 ### 方法
 

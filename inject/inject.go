@@ -3,6 +3,7 @@ package inject
 import (
 	"fmt"
 	"github.com/erkesi/gobean/log"
+	"math"
 	"reflect"
 )
 
@@ -52,6 +53,13 @@ type ProvideOptFunc func(opt *provideOpt)
 func ProvideWithPriority(priority int) ProvideOptFunc {
 	return func(opt *provideOpt) {
 		opt.priority = priority
+	}
+}
+
+// ProvideWithPriorityTop1 最先初始化
+func ProvideWithPriorityTop1() ProvideOptFunc {
+	return func(opt *provideOpt) {
+		opt.priority = math.MaxInt
 	}
 }
 
