@@ -1,9 +1,9 @@
-package inject
+package injects
 
 import (
 	"errors"
 	"fmt"
-	"github.com/erkesi/gobean/log"
+	"github.com/erkesi/gobean/logs"
 	"github.com/facebookgo/ensure"
 	"testing"
 )
@@ -59,7 +59,7 @@ func (l Log) Debugf(format string, v ...interface{}) {
 }
 
 func Test_Inject(t *testing.T) {
-	log.Init(Log{})
+	logs.Init(Log{})
 
 	ProvideByValue(&A{}, ProvideWithPriority(99))
 	ProvideByValue(&B{name: "unName"}, ProvideWithPriority(100))
@@ -72,7 +72,7 @@ func Test_Inject(t *testing.T) {
 
 	Init()
 
-	ensure.SameElements(t, PrintObjects(), []string{"\"*inject.B named b\"", "\"*inject.B\"", "\"*inject.A\"", "\"*errors.errorString\"", "\"*inject.A\"", "\"*inject.A\"", "\"*inject.C\""})
+	ensure.SameElements(t, PrintObjects(), []string{"\"*injects.B named b\"", "\"*injects.B\"", "\"*injects.A\"", "\"*errors.errorString\"", "\"*injects.A\"", "\"*injects.A\"", "\"*injects.C\""})
 
 	// obtain by struct type
 	c1 := ObtainByType(&C{}).(*C)

@@ -1,4 +1,4 @@
-package extpt
+package extpts
 
 import (
 	"fmt"

@@ -1,9 +1,9 @@
-package event
+package events
 
 import (
 	"context"
 	"fmt"
-	"github.com/erkesi/gobean/inject"
+	"github.com/erkesi/gobean/injects"
 	"reflect"
 	"sync"
 )
@@ -15,7 +15,7 @@ func Register(executors ...Executor) {
 func SetDefaultExecutor(executor Executor) {
 	hub.Lock()
 	defer hub.Unlock()
-	inject.ProvideByValue(executor, inject.ProvideWithPriorityTop1())
+	injects.ProvideByValue(executor, injects.ProvideWithPriorityTop1())
 	hub.defaultExecutor = executor
 }
 
@@ -64,7 +64,7 @@ func (h *_hub) register(executors ...Executor) {
 		h.executes = map[reflect.Type][]Executor{}
 	}
 	for _, executor := range executors {
-		inject.ProvideByValue(executor, inject.ProvideWithPriorityTop1())
+		injects.ProvideByValue(executor, injects.ProvideWithPriorityTop1())
 		for _, eventType := range executor.Types() {
 			if eventType.Kind() == reflect.Ptr {
 				eventType = eventType.Elem()
@@ -83,7 +83,7 @@ func (h *_hub) clear() {
 func (h *_hub) SetDefaultExecutor(executor Executor) {
 	h.Lock()
 	defer h.Unlock()
-	inject.ProvideByValue(executor)
+	injects.ProvideByValue(executor)
 	h.defaultExecutor = executor
 }
 

@@ -1,12 +1,11 @@
-package extpt
+package extpts
 
 import (
 	"fmt"
+	"github.com/erkesi/gobean/injects"
 	"reflect"
 	"sort"
 	"sync"
-
-	"github.com/erkesi/gobean/inject"
 )
 
 var Hub = &hub{typeSet: make(map[reflect.Type]bool)}
@@ -53,7 +52,7 @@ func (h *hub) Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
 	}
 	h.index = h.index + 1
 	opt := extPtOptsExec(opts...)
-	inject.ProvideByValue(et, inject.ProvideWithPriority(opt.priority))
+	injects.ProvideByValue(et, injects.ProvideWithPriority(opt.priority))
 	h.typeSet[reflect.TypeOf(et)] = true
 	h.extPts = append(h.extPts, &extPt{
 		t:        t,

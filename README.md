@@ -10,7 +10,7 @@ go get -u github.com/erkesi/gobean
 
 ```go
 
-import github.com/erkesi/gobean/log
+import github.com/erkesi/gobean/logs
 
 ```
 
@@ -28,7 +28,7 @@ import github.com/erkesi/gobean/log
 
 ```go
 
-import github.com/erkesi/gobean/inject
+import github.com/erkesi/gobean/injects
 
 ```
 
@@ -38,7 +38,7 @@ import github.com/erkesi/gobean/inject
 
 - 简单增加实例的生命周期管理，Struct 类型 可以实现 Init() \ Close() 来实现初始化、销毁实例
 
-- 使用示例：[inject_test.go](inject/inject_test.go)
+- 使用示例：[inject_test.go](injects/inject_test.go)
 
 ### 方法
 
@@ -102,13 +102,13 @@ func (a *A) Close(){
 
 ```go
 
-import github.com/erkesi/gobean/event
+import github.com/erkesi/gobean/events
 
 ```
 
 > 基于 inject 依赖注入的能力
 
-> 使用示例：[event_test.go](event/event_test.go)
+> 使用示例：[event_test.go](events/event_test.go)
 
 ### 方法
 
@@ -123,7 +123,7 @@ import github.com/erkesi/gobean/event
 
 #### 发布事件
 
-> 发布（接口：[Publisher](event/publisher.go)）
+> 发布（接口：[Publisher](events/publisher.go)）
 
 > Publish(ctx context.Context, event interface{}, opts ...PublishOpt) error 
 
@@ -138,7 +138,7 @@ import github.com/erkesi/gobean/event
 
 ```go
 
-import github.com/erkesi/gobean/extpt
+import github.com/erkesi/gobean/extpts
 
 ```
 
@@ -146,7 +146,7 @@ import github.com/erkesi/gobean/extpt
 
 > 执行的时候，依据扩展点接口，找到多个实现，按照优先级逐个匹配，如果匹配（Match() == true），则执行后返回。
 
-> 使用示例：[extension_pointer_test.go](extpt/extension_pointer_test.go)
+> 使用示例：[extension_pointer_test.go](extpts/extension_pointer_test.go)
 
 ### 方法
 
@@ -167,11 +167,11 @@ import github.com/erkesi/gobean/extpt
 
 ```go
 
-import github.com/erkesi/gobean/application
+import github.com/erkesi/gobean/applications
 
 ```
 
-> 使用示例：[application_test.go](application/application_test.go)
+> 使用示例：[application_test.go](applications/application_test.go)
 
 ### 方法
 
