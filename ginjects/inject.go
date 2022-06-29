@@ -59,7 +59,7 @@ func ProvideWithPriority(priority int) ProvideOptFunc {
 // ProvideWithPriorityTop1 最先初始化
 func ProvideWithPriorityTop1() ProvideOptFunc {
 	return func(opt *provideOpt) {
-		opt.priority = math.MaxInt
+		opt.priority = math.MaxInt64
 	}
 }
 
