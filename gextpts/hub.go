@@ -8,7 +8,11 @@ import (
 	"sync"
 )
 
-var Hub = &hub{typeSet: make(map[reflect.Type]bool)}
+func Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
+	hub.register(et, opts...)
+}
+
+var hub = &_hub{typeSet: make(map[reflect.Type]bool)}
 
 type extPt struct {
 	t               reflect.Type
@@ -38,14 +42,14 @@ func extPtOptsExec(opts ...ExtPtOptFunc) *extPtOpt {
 	return opt
 }
 
-type hub struct {
+type _hub struct {
 	extPts  []*extPt
 	typeSet map[reflect.Type]bool
 	m       sync.Map
 	index   int
 }
 
-func (h *hub) Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
+func (h *_hub) register(et ExtensionPointer, opts ...ExtPtOptFunc) {
 	t := reflect.TypeOf(et)
 	if h.typeSet[reflect.TypeOf(et)] {
 		panic(fmt.Sprintf("ExtensionPointer type(%s) exist", t.String()))
@@ -68,7 +72,7 @@ func (h *hub) Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
 	})
 }
 
-func (h *hub) find(ifaceType reflect.Type) []ExtensionPointer {
+func (h *_hub) find(ifaceType reflect.Type) []ExtensionPointer {
 	if value, ok := h.m.Load(ifaceType); ok {
 		return value.([]ExtensionPointer)
 	}

@@ -152,7 +152,7 @@ import github.com/erkesi/gobean/gextpts
 
 #### 注册扩展点实例
 
-> gextpts.Hub.Register(et ExtensionPointer, opts ...ExtPtFunc)
+> gextpts.Register(et ExtensionPointer, opts ...ExtPtFunc)
 
 #### 执行
 

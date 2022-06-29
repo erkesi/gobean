@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/erkesi/gobean/ginjects"
 	"reflect"
-	"sync"
 )
 
 func Register(executors ...Executor) {
@@ -13,8 +12,6 @@ func Register(executors ...Executor) {
 }
 
 func SetDefaultExecutor(executor Executor) {
-	hub.Lock()
-	defer hub.Unlock()
 	ginjects.ProvideByValue(executor, ginjects.ProvideWithPriorityTop1())
 	hub.defaultExecutor = executor
 }
@@ -52,14 +49,11 @@ func execute(ctx context.Context, event interface{}, o *Option) error {
 var hub = &_hub{}
 
 type _hub struct {
-	sync.RWMutex
 	executes        map[reflect.Type][]Executor
 	defaultExecutor Executor
 }
 
 func (h *_hub) register(executors ...Executor) {
-	h.Lock()
-	defer h.Unlock()
 	if h.executes == nil {
 		h.executes = map[reflect.Type][]Executor{}
 	}
@@ -74,21 +68,15 @@ func (h *_hub) register(executors ...Executor) {
 	}
 }
 func (h *_hub) clear() {
-	h.Lock()
-	defer h.Unlock()
 	h.executes = nil
 	h.defaultExecutor = nil
 }
 
 func (h *_hub) SetDefaultExecutor(executor Executor) {
-	h.Lock()
-	defer h.Unlock()
 	ginjects.ProvideByValue(executor)
 	h.defaultExecutor = executor
 }
 
 func (h *_hub) findExecutes(eventType reflect.Type) ([]Executor, Executor) {
-	h.RLock()
-	defer h.RUnlock()
 	return h.executes[eventType], h.defaultExecutor
 }

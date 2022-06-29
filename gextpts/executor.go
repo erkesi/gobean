@@ -88,7 +88,7 @@ func find(fn reflect.Value) []ExtensionPointer {
 	if t.Kind() != reflect.Interface {
 		panic(fmt.Sprintf("param f(%s), first param not is interface", fn.Type().String()))
 	}
-	impls := Hub.find(t)
+	impls := hub.find(t)
 	if len(impls) == 0 {
 		panic(fmt.Sprintf("not find ExtensionPointer implement %s", t.String()))
 	}
