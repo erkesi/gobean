@@ -1,8 +1,8 @@
-package extpts
+package gextpts
 
 import (
 	"fmt"
-	"github.com/erkesi/gobean/injects"
+	"github.com/erkesi/gobean/ginjects"
 	"reflect"
 	"sort"
 	"sync"
@@ -52,7 +52,7 @@ func (h *hub) Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
 	}
 	h.index = h.index + 1
 	opt := extPtOptsExec(opts...)
-	injects.ProvideByValue(et, injects.ProvideWithPriority(opt.priority))
+	ginjects.ProvideByValue(et, ginjects.ProvideWithPriority(opt.priority))
 	h.typeSet[reflect.TypeOf(et)] = true
 	h.extPts = append(h.extPts, &extPt{
 		t:        t,

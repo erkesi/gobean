@@ -1,8 +1,8 @@
-package injects
+package ginjects
 
 import (
 	"fmt"
-	"github.com/erkesi/gobean/logs"
+	"github.com/erkesi/gobean/glogs"
 	"math"
 	"reflect"
 )
@@ -25,8 +25,8 @@ func Init() {
 		for _, obj := range g.objects() {
 			initFn := obj.initFn
 			if initFn != nil {
-				if logs.Log != nil {
-					logs.Log.Debugf("init inject object(%v)", obj)
+				if glogs.Log != nil {
+					glogs.Log.Debugf("init inject object(%v)", obj)
 				}
 				initFn()
 			}
@@ -38,8 +38,8 @@ func Close() {
 	for i := len(g.objects()) - 1; i >= 0; i-- {
 		closeFn := g.objects()[i].closeFn
 		if closeFn != nil {
-			if logs.Log != nil {
-				logs.Log.Debugf("close inject object(%v)", g.objects()[i])
+			if glogs.Log != nil {
+				glogs.Log.Debugf("close inject object(%v)", g.objects()[i])
 			}
 			closeFn()
 		}

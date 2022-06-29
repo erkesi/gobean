@@ -6,11 +6,11 @@ go get -u github.com/erkesi/gobean
 
 > 每一个模块，都有测试用例，可以通过测试用例了解具体的使用方法
 
-## logs 包
+## glogs 包
 
 ```go
 
-import github.com/erkesi/gobean/logs
+import github.com/erkesi/gobean/glogs
 
 ```
 
@@ -20,15 +20,15 @@ import github.com/erkesi/gobean/logs
 
 #### 初始化全局 Logger 实例
 
-> logs.Init(logger Logger)
+> glogs.Init(logger Logger)
 
-## injects 包
+## ginjects 包
 
 > 依赖注入
 
 ```go
 
-import github.com/erkesi/gobean/injects
+import github.com/erkesi/gobean/ginjects
 
 ```
 
@@ -38,7 +38,7 @@ import github.com/erkesi/gobean/injects
 
 - 简单增加实例的生命周期管理，Struct 类型 可以实现 Init() \ Close() 来实现初始化、销毁实例
 
-- 使用示例：[inject_test.go](injects/inject_test.go)
+- 使用示例：[inject_test.go](ginjects/inject_test.go)
 
 ### 方法
 
@@ -54,11 +54,11 @@ type A struct{
 	B *B `inject:""`
 }
 
-// Init, 实现 injects.ObjectInit 接口，完成实例的初始化
+// Init, 实现 ginjects.ObjectInit 接口，完成实例的初始化
 func (a *A) Init() {
 }
 
-// Close, injects.ObjectClose 接口，完成实例的销毁
+// Close, ginjects.ObjectClose 接口，完成实例的销毁
 func (a *A) Close(){
 }
 
@@ -66,64 +66,64 @@ func (a *A) Close(){
 
 #### 按照类型注入实例
 
-- 参数 opts: 可以为 injects.ProvideWithPriority(priority int) , 顺序【依赖关系与优先级（从大到小）】完成实例的初始化
+- 参数 opts: 可以为 ginjects.ProvideWithPriority(priority int) , 顺序【依赖关系与优先级（从大到小）】完成实例的初始化
 
-> injects.ProvideByValue(value interface{}, opts ...ProvideOptFunc)
+> ginjects.ProvideByValue(value interface{}, opts ...ProvideOptFunc)
 
 #### 依据类型获取实例
 
-> injects.ObtainByType(value interface{}) interface{}
+> ginjects.ObtainByType(value interface{}) interface{}
 
 #### 按照命名注入实例
 
-- 参数 opts: 可以为 injects.ProvideWithPriority(priority int) , 按照顺序【依赖关系与优先级（从大到小）】完成实例的初始化
+- 参数 opts: 可以为 ginjects.ProvideWithPriority(priority int) , 按照顺序【依赖关系与优先级（从大到小）】完成实例的初始化
 
-> injects.ProvideByName(name string, value interface{}, opts ...ProvideOptFunc) 
+> ginjects.ProvideByName(name string, value interface{}, opts ...ProvideOptFunc) 
 
 #### 按照命名获取实例
 
-> injects.ObtainByName(name string) interface{}
+> ginjects.ObtainByName(name string) interface{}
 
 #### 完成依赖注入以及按照顺序【依赖关系与优先级（从大到小）】完成实例的初始化（Init()）
 
-> injects.Init()
+> ginjects.Init()
 
 #### 实例初始化的逆向顺序销毁实例（Close()）
 
-> injects.Close()
+> ginjects.Close()
 
 #### 按照依赖注入的关系打印实例列表
 
-> injects.PrintObjects()
+> ginjects.PrintObjects()
 
-## events 包
+## gevents 包
 
 > 事件的发布与订阅
 
 ```go
 
-import github.com/erkesi/gobean/events
+import github.com/erkesi/gobean/gevents
 
 ```
 
-> 基于 injects 依赖注入的能力
+> 基于 ginjects 依赖注入的能力
 
-> 使用示例：[event_test.go](events/event_test.go)
+> 使用示例：[event_test.go](gevents/event_test.go)
 
 ### 方法
 
 #### 注册事件处理器
 
-> events.Register(executors ...Executor)
+> gevents.Register(executors ...Executor)
 
 
 #### 设置事件默认处理器
 
-> events.SetDefaultExecutor(executor Executor)
+> gevents.SetDefaultExecutor(executor Executor)
 
 #### 发布事件
 
-> 发布（接口：[Publisher](events/publisher.go)）
+> 发布（接口：[Publisher](gevents/publisher.go)）
 
 > Publish(ctx context.Context, event interface{}, opts ...PublishOpt) error 
 
@@ -132,66 +132,66 @@ import github.com/erkesi/gobean/events
 > &DefaultPublisher{}
 
 
-## extpts 包
+## gextpts 包
 
 > 扩展点能力
 
 ```go
 
-import github.com/erkesi/gobean/extpts
+import github.com/erkesi/gobean/gextpts
 
 ```
 
-> 基于 injects 依赖注入的能力
+> 基于 ginjects 依赖注入的能力
 
 > 执行的时候，依据扩展点接口，找到多个实现，按照优先级逐个匹配，如果匹配（Match() == true），则执行后返回。
 
-> 使用示例：[extension_pointer_test.go](extpts/extension_pointer_test.go)
+> 使用示例：[extension_pointer_test.go](gextpts/extension_pointer_test.go)
 
 ### 方法
 
 #### 注册扩展点实例
 
-> extpts.Hub.Register(et ExtensionPointer, opts ...ExtPtFunc)
+> gextpts.Hub.Register(et ExtensionPointer, opts ...ExtPtFunc)
 
 #### 执行
 
-> extpts.Execute(f interface{}, args ...interface{}) (bool, interface{})
+> gextpts.Execute(f interface{}, args ...interface{}) (bool, interface{})
 
-> extpts.ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, error)
+> gextpts.ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, error)
 
 
-## applications 包
+## gapplications 包
 
 > 应用启动与销毁回调函数的注册以及使用
 
 ```go
 
-import github.com/erkesi/gobean/applications
+import github.com/erkesi/gobean/gapplications
 
 ```
 
-> 使用示例：[application_test.go](applications/application_test.go)
+> 使用示例：[application_test.go](gapplications/application_test.go)
 
 ### 方法
 
 #### 注册应用启动回调函数 
 
-- 参数 opts: 可以为 applications.CallbackWithPriority(priority int) , 顺序【优先级（从大到小）】执行 callback
+- 参数 opts: 可以为 gapplications.CallbackWithPriority(priority int) , 顺序【优先级（从大到小）】执行 callback
 
-> applications.AddInitCallback(callback appStateCallback, opts ...OptFunc)
+> gapplications.AddInitCallback(callback appStateCallback, opts ...OptFunc)
 
 #### 注册应用销毁回调函数
 
-- 参数 opts: 可以为 applications.CallbackWithPriority(priority int) , 顺序【优先级（从大到小）】执行 callback
+- 参数 opts: 可以为 gapplications.CallbackWithPriority(priority int) , 顺序【优先级（从大到小）】执行 callback
 
-> applications.AddCloseCallback(callback appStateCallback, opts ...OptFunc)
+> gapplications.AddCloseCallback(callback appStateCallback, opts ...OptFunc)
 
 #### 应用初始化，按照优先级顺序（从大到小）调启动函数 
 
-> applications.Init()
+> gapplications.Init()
 
 #### 应用销毁，按照优先级顺序（从大到小）调销毁函数
 
-> applications.Close()
+> gapplications.Close()
 

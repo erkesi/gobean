@@ -1,16 +1,16 @@
-package injects
+package ginjects
 
 import (
 	"fmt"
-	"github.com/erkesi/gobean/logs"
+	"github.com/erkesi/gobean/glogs"
 	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	graphtesta "github.com/erkesi/gobean/injects/graphtesta"
-	graphtestb "github.com/erkesi/gobean/injects/graphtestb"
+	graphtesta "github.com/erkesi/gobean/ginjects/graphtesta"
+	graphtestb "github.com/erkesi/gobean/ginjects/graphtestb"
 	"github.com/facebookgo/ensure"
 )
 
@@ -82,7 +82,7 @@ func TestErrorOnNonPointerInject(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "found inject tag on unsupported field A in type *injects.TypeWithNonPointerInject"
+	const msg = "found inject tag on unsupported field A in type *ginjects.TypeWithNonPointerInject"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -99,7 +99,7 @@ func TestErrorOnNonPointerStructInject(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "found inject tag on unsupported field A in type *injects.TypeWithNonPointerStructInject"
+	const msg = "found inject tag on unsupported field A in type *ginjects.TypeWithNonPointerStructInject"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -180,7 +180,7 @@ func TestTagWithJustColon(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "unexpected tag format `inject:` for field A in type *injects.TypeWithJustColon"
+	const msg = "unexpected tag format `inject:` for field A in type *ginjects.TypeWithJustColon"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -197,7 +197,7 @@ func TestTagWithOpenQuote(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "unexpected tag format `inject:\"` for field A in type *injects.TypeWithOpenQuote"
+	const msg = "unexpected tag format `inject:\"` for field A in type *ginjects.TypeWithOpenQuote"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -210,7 +210,7 @@ func TestProvideWithFields(t *testing.T) {
 	a := &TypeAnswerStruct{}
 	err := g.provide(&object{value: a, fields: map[string]*object{}})
 	ensure.NotNil(t, err)
-	ensure.DeepEqual(t, err.Error(), "fields were specified on object \"*injects.TypeAnswerStruct\" when it was provided")
+	ensure.DeepEqual(t, err.Error(), "fields were specified on object \"*ginjects.TypeAnswerStruct\" when it was provided")
 }
 
 func TestProvideNonPointer(t *testing.T) {
@@ -260,7 +260,7 @@ func TestProvideTwoOfTheSame(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean/injects.TypeAnswerStruct"
+	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean/ginjects.TypeAnswerStruct"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -273,7 +273,7 @@ func TestProvideTwoOfTheSameWithpopulate(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean/injects.TypeAnswerStruct"
+	const msg = "provided two unnamed instances of type *github.com/erkesi/gobean/ginjects.TypeAnswerStruct"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -371,7 +371,7 @@ func TestTagWithMissingNamed(t *testing.T) {
 		t.Fatalf("expected error for %+v", a)
 	}
 
-	const msg = "did not find object named foo required by field A in type *injects.TypeWithMissingNamed"
+	const msg = "did not find object named foo required by field A in type *ginjects.TypeWithMissingNamed"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -426,7 +426,7 @@ func TestInjectInterfaceMissing(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "found no assignable value for field Answerable in type *injects.TypeInjectInterfaceMissing"
+	const msg = "found no assignable value for field Answerable in type *ginjects.TypeInjectInterfaceMissing"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -476,7 +476,7 @@ func TestInvalidNamedInstanceType(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "object named foo of type *injects.TypeNestedStruct is not assignable to field A (*injects.TypeAnswerStruct) in type *injects.TypeWithInvalidNamedType"
+	const msg = "object named foo of type *ginjects.TypeNestedStruct is not assignable to field A (*ginjects.TypeAnswerStruct) in type *ginjects.TypeWithInvalidNamedType"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -493,7 +493,7 @@ func TestInjectOnPrivateField(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "inject requested on unexported field a in type *injects.TypeWithInjectOnPrivateField"
+	const msg = "inject requested on unexported field a in type *ginjects.TypeWithInjectOnPrivateField"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -510,7 +510,7 @@ func TestInjectOnPrivateInterfaceField(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "inject requested on unexported field a in type *injects.TypeWithInjectOnPrivateField"
+	const msg = "inject requested on unexported field a in type *ginjects.TypeWithInjectOnPrivateField"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -528,7 +528,7 @@ func TestInjectPrivateInterface(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "found private inject tag on interface field Answerable in type *injects.TypeInjectPrivateInterface"
+	const msg = "found private inject tag on interface field Answerable in type *ginjects.TypeInjectPrivateInterface"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -547,7 +547,7 @@ func TestInjectTwoSatisfyInterface(t *testing.T) {
 		t.Fatal("did not find expected error")
 	}
 
-	const msg = "found two assignable values for field Answerable in type *injects.TypeInjectTwoSatisfyInterface. one type *injects.TypeAnswerStruct with value &{0 0} and another type *injects.TypeNestedStruct with value"
+	const msg = "found two assignable values for field Answerable in type *ginjects.TypeInjectTwoSatisfyInterface. one type *ginjects.TypeAnswerStruct with value &{0 0} and another type *ginjects.TypeNestedStruct with value"
 	if !strings.HasPrefix(err.Error(), msg) {
 		t.Fatalf("expected prefix:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -573,7 +573,7 @@ func TestInjectNamedTwoSatisfyInterface(t *testing.T) {
 		t.Fatal("was expecting error")
 	}
 
-	const msg = "found two assignable values for field Answerable in type *injects.TypeInjectNamedTwoSatisfyInterface. one type *injects.TypeAnswerStruct with value &{0 0} and another type *injects.TypeNestedStruct with value"
+	const msg = "found two assignable values for field Answerable in type *ginjects.TypeInjectNamedTwoSatisfyInterface. one type *ginjects.TypeAnswerStruct with value &{0 0} and another type *ginjects.TypeNestedStruct with value"
 	if !strings.HasPrefix(err.Error(), msg) {
 		t.Fatalf("expected prefix:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -597,7 +597,7 @@ func TestInjectNamedOnPrivateInterfaceField(t *testing.T) {
 		t.Fatal("was expecting error")
 	}
 
-	const msg = "inject requested on unexported field a in type *injects.TypeWithInjectNamedOnPrivateInterfaceField"
+	const msg = "inject requested on unexported field a in type *ginjects.TypeWithInjectNamedOnPrivateInterfaceField"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -689,7 +689,7 @@ func TestInjectInvalidInline(t *testing.T) {
 		t.Fatal("was expecting an error")
 	}
 
-	const msg = `inline requested on non inlined field A in type *struct { A *injects.TypeAnswerStruct "inject:\"inline\"" }`
+	const msg = `inline requested on non inlined field A in type *struct { A *ginjects.TypeAnswerStruct "inject:\"inline\"" }`
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -707,7 +707,7 @@ func TestInjectInlineMissing(t *testing.T) {
 		t.Fatal("was expecting an error")
 	}
 
-	const msg = `inline struct on field Inline in type *struct { Inline struct { B *injects.TypeNestedStruct "inject:\"\"" } "inject:\"\"" } requires an explicit "inline" tag`
+	const msg = `inline struct on field Inline in type *struct { Inline struct { B *ginjects.TypeNestedStruct "inject:\"\"" } "inject:\"\"" } requires an explicit "inline" tag`
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -727,7 +727,7 @@ func TestInjectInlinePrivate(t *testing.T) {
 		t.Fatal("was expecting an error")
 	}
 
-	const msg = "cannot use private inject on inline struct on field Inline in type *injects.TypeWithInlineStructWithPrivate"
+	const msg = "cannot use private inject on inline struct on field Inline in type *ginjects.TypeWithInlineStructWithPrivate"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -852,7 +852,7 @@ func TestInjectMapWithoutPrivate(t *testing.T) {
 		t.Fatalf("expected error for %+v", v)
 	}
 
-	const msg = "inject on map field A in type *injects.TypeInjectWithMapWithoutPrivate must be named or private"
+	const msg = "inject on map field A in type *ginjects.TypeInjectWithMapWithoutPrivate must be named or private"
 	if err.Error() != msg {
 		t.Fatalf("expected:\n%s\nactual:\n%s", msg, err.Error())
 	}
@@ -887,10 +887,10 @@ func TestObjectString(t *testing.T) {
 	}
 
 	ensure.SameElements(t, actual, []string{
-		"\"*injects.TypeAnswerStruct\"",
-		"\"*injects.TypeNestedStruct named foo\"",
-		"\"*injects.TypeNestedStruct\"",
-		"\"*injects.TypeForObjectString\"",
+		"\"*ginjects.TypeAnswerStruct\"",
+		"\"*ginjects.TypeNestedStruct named foo\"",
+		"\"*ginjects.TypeNestedStruct\"",
+		"\"*ginjects.TypeForObjectString\"",
 	})
 }
 
@@ -919,11 +919,11 @@ func TestGraphObjects(t *testing.T) {
 	}
 
 	ensure.SameElements(t, actual, []string{
-		"\"*injects.TypeAnswerStruct\"",
-		"\"*injects.TypeForGraphObjects\"",
-		"\"*injects.TypeNestedStruct named foo\"",
-		"\"*injects.TypeNestedStruct\"",
-		`"*struct { B *injects.TypeNestedStruct "inject:\"\"" }"`,
+		"\"*ginjects.TypeAnswerStruct\"",
+		"\"*ginjects.TypeForGraphObjects\"",
+		"\"*ginjects.TypeNestedStruct named foo\"",
+		"\"*ginjects.TypeNestedStruct\"",
+		`"*struct { B *ginjects.TypeNestedStruct "inject:\"\"" }"`,
 	})
 }
 
@@ -966,17 +966,17 @@ type TypeForLogging struct {
 }
 
 func InjectLogging(t *testing.T) {
-	logs.Init(&logger{
+	glogs.Init(&logger{
 		Expected: []string{
-			"provided *injects.TypeForLoggingCreated named name_for_logging",
-			"provided *injects.TypeForLogging",
-			"provided embedded *injects.TypeForLoggingEmbedded",
-			"created *injects.TypeForLoggingCreated",
-			"assigned newly created *injects.TypeForLoggingCreated to field TypeForLoggingCreated in *injects.TypeForLogging",
-			"assigned existing *injects.TypeForLoggingCreated to field TypeForLoggingCreated in *injects.TypeForLoggingEmbedded",
-			"assigned *injects.TypeForLoggingCreated named name_for_logging to field TypeForLoggingCreatedNamed in *injects.TypeForLoggingEmbedded",
-			"made map for field Map in *injects.TypeForLoggingEmbedded",
-			"assigned existing *injects.TypeForLoggingCreated to interface field TypeForLoggingInterface in *injects.TypeForLoggingEmbedded",
+			"provided *ginjects.TypeForLoggingCreated named name_for_logging",
+			"provided *ginjects.TypeForLogging",
+			"provided embedded *ginjects.TypeForLoggingEmbedded",
+			"created *ginjects.TypeForLoggingCreated",
+			"assigned newly created *ginjects.TypeForLoggingCreated to field TypeForLoggingCreated in *ginjects.TypeForLogging",
+			"assigned existing *ginjects.TypeForLoggingCreated to field TypeForLoggingCreated in *ginjects.TypeForLoggingEmbedded",
+			"assigned *ginjects.TypeForLoggingCreated named name_for_logging to field TypeForLoggingCreatedNamed in *ginjects.TypeForLoggingEmbedded",
+			"made map for field Map in *ginjects.TypeForLoggingEmbedded",
+			"assigned existing *ginjects.TypeForLoggingCreated to interface field TypeForLoggingInterface in *ginjects.TypeForLoggingEmbedded",
 		},
 		T: t,
 	})

@@ -1,4 +1,4 @@
-package applications
+package gapplications
 
 import (
 	"reflect"

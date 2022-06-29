@@ -1,4 +1,4 @@
-package injects
+package ginjects
 
 import (
 	"fmt"

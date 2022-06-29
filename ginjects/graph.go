@@ -23,12 +23,12 @@
 // of the associated type. The second triggers creation of a private instance
 // for the associated type. Finally the last form is asking for a named
 // dependency called "dev logger".
-package injects
+package ginjects
 
 import (
 	"errors"
 	"fmt"
-	"github.com/erkesi/gobean/logs"
+	"github.com/erkesi/gobean/glogs"
 	"reflect"
 	"strconv"
 	"strings"
@@ -157,13 +157,13 @@ func (g *graph) provide(objects ...*object) error {
 			g.named[o.name] = o
 		}
 
-		if logs.Log != nil {
+		if glogs.Log != nil {
 			if o.created {
-				logs.Log.Debugf("created %s", o)
+				glogs.Log.Debugf("created %s", o)
 			} else if o.embedded {
-				logs.Log.Debugf("provided embedded %s", o)
+				glogs.Log.Debugf("provided embedded %s", o)
 			} else {
-				logs.Log.Debugf("provided %s", o)
+				glogs.Log.Debugf("provided %s", o)
 			}
 		}
 	}
@@ -312,8 +312,8 @@ StructLoop:
 			}
 
 			field.Set(reflect.ValueOf(existing.value))
-			if logs.Log != nil {
-				logs.Log.Debugf(
+			if glogs.Log != nil {
+				glogs.Log.Debugf(
 					"assigned %s to field %s in %s",
 					existing,
 					o.reflectType.Elem().Field(i).Name,
@@ -370,8 +370,8 @@ StructLoop:
 			}
 
 			field.Set(reflect.MakeMap(fieldType))
-			if logs.Log != nil {
-				logs.Log.Debugf(
+			if glogs.Log != nil {
+				glogs.Log.Debugf(
 					"made map for field %s in %s",
 					o.reflectType.Elem().Field(i).Name,
 					o,
@@ -398,8 +398,8 @@ StructLoop:
 				}
 				if existing.reflectType.AssignableTo(fieldType) {
 					field.Set(reflect.ValueOf(existing.value))
-					if logs.Log != nil {
-						logs.Log.Debugf(
+					if glogs.Log != nil {
+						glogs.Log.Debugf(
 							"assigned existing %s to field %s in %s",
 							existing,
 							o.reflectType.Elem().Field(i).Name,
@@ -427,8 +427,8 @@ StructLoop:
 
 		// Finally assign the newly created object to our field.
 		field.Set(newValue)
-		if logs.Log != nil {
-			logs.Log.Debugf(
+		if glogs.Log != nil {
+			glogs.Log.Debugf(
 				"assigned newly created %s to field %s in %s",
 				newObject,
 				o.reflectType.Elem().Field(i).Name,
@@ -513,8 +513,8 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 				}
 				found = existing
 				field.Set(reflect.ValueOf(existing.value))
-				if logs.Log != nil {
-					logs.Log.Debugf(
+				if glogs.Log != nil {
+					glogs.Log.Debugf(
 						"assigned existing %s to interface field %s in %s",
 						existing,
 						o.reflectType.Elem().Field(i).Name,

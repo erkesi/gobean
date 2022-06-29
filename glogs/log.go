@@ -1,4 +1,4 @@
-package logs
+package glogs
 
 var Log Logger
 

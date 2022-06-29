@@ -1,4 +1,4 @@
-package extpts
+package gextpts
 
 import (
 	"errors"
