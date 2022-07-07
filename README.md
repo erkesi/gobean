@@ -156,9 +156,9 @@ import github.com/erkesi/gobean/gextpts
 
 #### 执行
 
-> gextpts.Execute(f interface{}, args ...interface{}) (bool, interface{})
+> gextpts.Execute(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{})
 
-> gextpts.ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, error)
+> gextpts.ExecuteWithErr(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{}, error)
 
 
 ## gapplications 包

@@ -1,5 +1,7 @@
 package gextpts
 
+import "context"
+
 type ExtensionPointer interface {
-	Match(values ...interface{}) bool
+	Match(ctx context.Context, values ...interface{}) bool
 }

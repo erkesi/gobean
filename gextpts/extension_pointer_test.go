@@ -1,6 +1,7 @@
 package gextpts
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,7 +11,7 @@ import (
 type UserExtensionPointer0 struct {
 }
 
-func (e *UserExtensionPointer0) Match(values ...interface{}) bool {
+func (e *UserExtensionPointer0) Match(ctx context.Context, values ...interface{}) bool {
 	fmt.Println(values[0])
 	return true
 }
@@ -18,25 +19,24 @@ func (e *UserExtensionPointer0) Match(values ...interface{}) bool {
 type UserExtensionPointer1 struct {
 }
 
-func (e *UserExtensionPointer1) Match(values ...interface{}) bool {
-	fmt.Println(values[0])
-	return true
+func (e *UserExtensionPointer1) Match(ctx context.Context, values ...interface{}) bool {
+	return values[0].(*User).Id == 1
 }
 
-func (e *UserExtensionPointer1) Validate(user *User) (bool, error) {
+func (e *UserExtensionPointer1) Validate(ctx context.Context, user *User) (bool, error) {
+	fmt.Println(ctx.Value("tmp"))
 	return user.Id == 1, errors.New("validate error")
 }
 
 type UserExtensionPointer2 struct {
 }
 
-func (e *UserExtensionPointer2) Match(values ...interface{}) bool {
-	fmt.Println(values[0])
-	return true
+func (e *UserExtensionPointer2) Match(ctx context.Context, values ...interface{}) bool {
+	return values[0].(*User).Id == 2
 }
 
-func (e *UserExtensionPointer2) Validate(user *User) (bool, error) {
-	return user.Id == 2, errors.New("validate error")
+func (e *UserExtensionPointer2) Validate(ctx context.Context, user *User) (bool, error) {
+	return user.Id == 2, nil
 }
 
 type User struct {
@@ -45,14 +45,15 @@ type User struct {
 
 type DataValidateExtPt interface {
 	ExtensionPointer
-	Validate(user *User) (bool, error)
+	Validate(ctx context.Context, user *User) (bool, error)
 }
 
 func TestInterfaceFunction2(t *testing.T) {
 	Register(&UserExtensionPointer1{}, ExtPtWithPriority(99))
 	Register(&UserExtensionPointer2{}, ExtPtWithPriority(98))
 	Register(&UserExtensionPointer0{}, ExtPtWithPriority(100))
-	_, b, err := ExecuteWithErr(DataValidateExtPt.Validate, &User{Id: 1})
+	ctx := context.WithValue(context.Background(), "tmp", "tmp_val")
+	_, b, err := ExecuteWithErr(ctx, DataValidateExtPt.Validate, &User{Id: 1})
 	fmt.Println(b.(bool))
 	fmt.Println(err)
 	if err.Error() != "validate error" {

@@ -1,16 +1,18 @@
 package gextpts
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 )
 
 // Execute 执行扩展点，接口方法返回值只有一个参数的情况
+// @param ctx context.Context
 // @param f interface "接口方法"
 // @param args []interface "接口方法参数"
 // @return ok bool "是否匹配到了扩展点实例"
 // @return value interface "接口方法返回值"
-func Execute(f interface{}, args ...interface{}) (bool, interface{}) {
+func Execute(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{}) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
 		panic("args[0] kind not func")
@@ -18,10 +20,7 @@ func Execute(f interface{}, args ...interface{}) (bool, interface{}) {
 	if fn.Type().NumOut() != 1 {
 		panic(fmt.Sprintf("func `%v`, the number of returned parameters is not equal to 1", fn.Type()))
 	}
-	var inputArgs []reflect.Value
-	for _, arg := range args {
-		inputArgs = append(inputArgs, reflect.ValueOf(arg))
-	}
+	inputArgs := inputParams(ctx, args)
 	impls := find(fn)
 	for _, impl := range impls {
 		var input []reflect.Value
@@ -42,12 +41,13 @@ var e *error
 var errorType = reflect.TypeOf(e)
 
 // ExecuteWithErr 执行扩展点，接口方法返回值只有两个参数，第二个参数是Error接口类型
+// @param ctx context.Context
 // @param f interface "接口方法"
 // @param args []interface "接口方法参数"
 // @return ok bool "是否匹配到了扩展点实例"
 // @return value interface "接口方法返回第一个值"
 // @return err Error "接口方法返回第二个值（Error类型）"
-func ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, error) {
+func ExecuteWithErr(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{}, error) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
 		panic("args[0] kind not func")
@@ -59,10 +59,7 @@ func ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, erro
 	if errType != errorType.Elem() {
 		panic(fmt.Sprintf("func `%v`, the second parameter returned is not of type `error`", fn.Type()))
 	}
-	var inputArgs []reflect.Value
-	for _, arg := range args {
-		inputArgs = append(inputArgs, reflect.ValueOf(arg))
-	}
+	inputArgs := inputParams(ctx, args)
 	impls := find(fn)
 	for _, impl := range impls {
 		var input []reflect.Value
@@ -81,6 +78,15 @@ func ExecuteWithErr(f interface{}, args ...interface{}) (bool, interface{}, erro
 		}
 	}
 	return false, nil, nil
+}
+
+func inputParams(ctx context.Context, args []interface{}) []reflect.Value {
+	var inputArgs []reflect.Value
+	inputArgs = append(inputArgs, reflect.ValueOf(ctx))
+	for _, arg := range args {
+		inputArgs = append(inputArgs, reflect.ValueOf(arg))
+	}
+	return inputArgs
 }
 
 func find(fn reflect.Value) []ExtensionPointer {
