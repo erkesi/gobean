@@ -25,7 +25,7 @@ type TaskTransitionDSL struct {
 	TargetId  string `xml:"targetId,attr"`
 }
 
-func ToStateMachineDSL(dsl string) (StateMachineDSL, error) {
+func toStateMachineDSL(dsl string) (StateMachineDSL, error) {
 	stateMachineDSL := StateMachineDSL{}
 	if err := xml.Unmarshal([]byte(dsl), &stateMachineDSL); err != nil {
 		return StateMachineDSL{}, err

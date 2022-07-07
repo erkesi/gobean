@@ -1,6 +1,9 @@
 package gstatemachines
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type Stater interface {
 	BaseStater
@@ -35,6 +38,10 @@ type State struct {
 	Desc           string
 	Transitions    []*Transition
 	IsStart, IsEnd bool
+}
+
+func (s *State) String() string {
+	return fmt.Sprintf("[State] Id:%s, Desc:%s, IsStart:%t, IsEnd:%t", s.Id, s.Desc, s.IsStart, s.IsEnd)
 }
 
 func (s *State) Transition(ctx context.Context, event Event) (Stater, error) {

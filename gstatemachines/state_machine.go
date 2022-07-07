@@ -48,3 +48,12 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event
 func (sm *StateMachine) CurState() Stater {
 	return sm.curState
 }
+
+func ToStateMachineDefinition(dsl string) (*StateMachineDefinition, error) {
+	definition := &StateMachineDefinition{}
+	_, err := toStateMachineDSL(dsl)
+	if err != nil {
+		return nil, err
+	}
+	return definition, nil
+}

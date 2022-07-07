@@ -5,7 +5,7 @@ import (
 )
 
 func TestToStateMachineDSL(t *testing.T) {
-	dls := `<?xml version="1.0" encoding="utf-8"?>
+	dsl := `<?xml version="1.0" encoding="utf-8"?>
 <stateMachine version="1">
     <states>
         <state id="Start" isStart="true">start</state>
@@ -20,7 +20,7 @@ func TestToStateMachineDSL(t *testing.T) {
     </transitions>
 </stateMachine>`
 
-	stateMachineDSL, err := ToStateMachineDSL(dls)
+	stateMachineDSL, err := toStateMachineDSL(dsl)
 	if err != nil {
 		t.Fatal(err)
 	}
