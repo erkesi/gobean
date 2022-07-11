@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<stateMachine version="1">
+<stateMachine name="demo" version="1">
     <states>
         <state id="Start" isStart="true">start</state>
         <state id="Task1">task1</state>

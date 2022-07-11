@@ -45,7 +45,6 @@ func TestStateMachine_Generate(t *testing.T) {
 	stateMachine := &StateMachine{
 		Definition: definition,
 	}
-	enableDebug()
 	err = stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "Reject"})
 	if err != nil {
 		t.Fatal(err)

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/erkesi/gobean/glogs"
 	"github.com/maja42/goval"
-	"github.com/pkg/errors"
-	"strconv"
 )
 
 type Stater interface {
@@ -45,7 +43,7 @@ type Transition struct {
 // condition 为表达式
 func (t *Transition) Satisfied(event Event) (bool, error) {
 	r, err := testExpression(t.Condition, event)
-	glogs.Log.Debugf("Check condition: %s; result is %s", t.Condition, strconv.FormatBool(r))
+	glogs.Log.Debugf("check condition: %s; result is %t", t.Condition, r)
 	return r, err
 }
 
@@ -53,12 +51,12 @@ func testExpression(expression string, vars map[string]interface{}) (bool, error
 	eval := goval.NewEvaluator()
 	result, err := eval.Evaluate(expression, vars, nil)
 	if err != nil {
-		return false, errors.Errorf(ConditionExpressionInvalidErrStr, expression)
+		return false, fmt.Errorf(conditionExpressionInvalidErrFmt, expression, err)
 	}
 	if v, ok := result.(bool); ok {
 		return v, nil
 	}
-	glogs.Log.Debugf("Expression result transfer error")
+	glogs.Log.Debugf("expression result transfer error")
 	return false, ErrConditionExpressionResultTypeUnmatch
 }
 

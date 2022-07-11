@@ -10,5 +10,6 @@ var ErrTransitionAllNotSatisfied = errors.New("gstatemachines: transition all no
 var ErrStateEmptyTarget = errors.New("gstatemachines: state target invalid")
 var ErrStateEmptySource = errors.New("gstatemachines: state source invalid")
 
-var ConditionExpressionInvalidErrStr = "gstatemachines: condition expression invalid, expression is: %s"
-var ErrConditionExpressionResultTypeUnmatch = errors.New("gstatemachines: expression result transfer error")
+var ErrConditionExpressionResultTypeUnmatch = errors.New("gstatemachines: expression result type must be bool")
+
+const conditionExpressionInvalidErrFmt = "gstatemachines: condition expression invalid, expression is: %s, err: %w"

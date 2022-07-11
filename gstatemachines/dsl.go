@@ -6,6 +6,7 @@ import (
 
 type StateMachineDSL struct {
 	XMLName     xml.Name            `xml:"stateMachine"`
+	Name        string              `xml:"name,attr"`
 	Version     string              `xml:"version,attr"`
 	States      []StateDSL          `xml:"states>state"`
 	Transitions []TaskTransitionDSL `xml:"transitions>transition"`
