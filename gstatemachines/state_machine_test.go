@@ -3,6 +3,7 @@ package gstatemachines
 import (
 	"context"
 	"fmt"
+	"github.com/erkesi/gobean/glogs"
 	"testing"
 )
 
@@ -21,37 +22,21 @@ const dls = `<?xml version="1.0" encoding="utf-8"?>
     </transitions>
 </stateMachine>`
 
-func TestStateMachine_Generate(t *testing.T) {
+type Log struct {
+}
 
-	id2State := make(map[string]Stater)
-	id2State["Start"] = &State{
-		BaseStater: &Task1State{},
-		Id:         "Start",
-		Desc:       "Start",
-		IsStart:    true,
-		IsEnd:      false,
-	}
-	id2State["Task1"] = &State{
-		BaseStater: &Task1State{},
-		Id:         "Task1",
-		Desc:       "Task1",
-		IsStart:    false,
-		IsEnd:      false,
-	}
-	id2State["Reject"] = &State{
-		BaseStater: &RejectState{},
-		Id:         "Reject",
-		Desc:       "Reject",
-		IsStart:    false,
-		IsEnd:      true,
-	}
-	id2State["End"] = &State{
-		BaseStater: &EndState{},
-		Id:         "End",
-		Desc:       "End",
-		IsStart:    false,
-		IsEnd:      true,
-	}
+func (l Log) Debugf(format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
+}
+
+func TestStateMachine_Generate(t *testing.T) {
+	glogs.Init(Log{})
+
+	id2State := make(map[string]BaseStater)
+	id2State["Start"] = &Task1State{}
+	id2State["Task1"] = &Task1State{}
+	id2State["Reject"] = &RejectState{}
+	id2State["End"] = &EndState{}
 
 	definition, err := ToStateMachineDefinition(dls, id2State)
 	if err != nil {
@@ -66,9 +51,17 @@ func TestStateMachine_Generate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if stateMachine.curState.GetId() != "Reject" {
+		t.Errorf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "Reject")
+	}
+
 	err = stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "End"})
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if stateMachine.curState.GetId() != "End" {
+		t.Errorf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "End")
 	}
 }
 

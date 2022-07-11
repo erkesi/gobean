@@ -3,7 +3,9 @@ package gstatemachines
 import (
 	"context"
 	"fmt"
+	"github.com/erkesi/gobean/glogs"
 	"github.com/maja42/goval"
+	"github.com/pkg/errors"
 	"strconv"
 )
 
@@ -19,6 +21,9 @@ type Stater interface {
 
 	// SetTransitions 更新转换列表
 	SetTransitions([]*Transition)
+
+	// GetId 获取id
+	GetId() string
 }
 
 type BaseStater interface {
@@ -35,27 +40,26 @@ type Transition struct {
 	Target    Stater
 }
 
-// Satisfied todo https://github.com/maja42/goval
+// Satisfied
 // event 为变量池
 // condition 为表达式
-func (t *Transition) Satisfied(event Event) bool {
-	r := testExpression(t.Condition, event)
-	DebugLog("Check condition: " + t.Condition + " ; result is " + strconv.FormatBool(r))
-	return r
+func (t *Transition) Satisfied(event Event) (bool, error) {
+	r, err := testExpression(t.Condition, event)
+	glogs.Log.Debugf("Check condition: %s; result is %s", t.Condition, strconv.FormatBool(r))
+	return r, err
 }
 
-func testExpression(expression string, vars map[string]interface{}) bool {
+func testExpression(expression string, vars map[string]interface{}) (bool, error) {
 	eval := goval.NewEvaluator()
 	result, err := eval.Evaluate(expression, vars, nil)
 	if err != nil {
-		DebugLog("Evaluate error, expression is: " + expression)
-		return false
+		return false, errors.Errorf(ConditionExpressionInvalidErrStr, expression)
 	}
 	if v, ok := result.(bool); ok {
-		return v
+		return v, nil
 	}
-	DebugLog("Expression result transfer error")
-	return false
+	glogs.Log.Debugf("Expression result transfer error")
+	return false, ErrConditionExpressionResultTypeUnmatch
 }
 
 type State struct {
@@ -70,6 +74,10 @@ func (s *State) String() string {
 	return fmt.Sprintf("[State] Id:%s, Desc:%s, IsStart:%t, IsEnd:%t", s.Id, s.Desc, s.IsStart, s.IsEnd)
 }
 
+func (s *State) GetId() string {
+	return s.Id
+}
+
 func (s *State) GetTransitions() []*Transition {
 	return s.Transitions
 }
@@ -80,9 +88,14 @@ func (s *State) SetTransitions(ts []*Transition) {
 
 func (s *State) Transform(ctx context.Context, event Event) (Stater, error) {
 	for _, transition := range s.Transitions {
-		if transition.Satisfied(event) {
+		ok, err := transition.Satisfied(event)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
 			return transition.Target, nil
 		}
+
 	}
 	return nil, ErrTransitionAllNotSatisfied
 }

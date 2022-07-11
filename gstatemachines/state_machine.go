@@ -2,7 +2,7 @@ package gstatemachines
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"github.com/erkesi/gobean/glogs"
 )
 
 type StateMachineDefinition struct {
@@ -17,7 +17,8 @@ type StateMachine struct {
 }
 
 func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event Event, args ...interface{}) error {
-	DebugLog("Executing, sourceStateId is " + sourceStateId)
+	glogs.Log.Debugf("Executing, sourceStateId is %s", sourceStateId)
+
 	curState, ok := sm.Definition.Id2State[sourceStateId]
 	if !ok {
 		return ErrStateNotExist
@@ -51,19 +52,44 @@ func (sm *StateMachine) CurState() Stater {
 	return sm.curState
 }
 
-func ToStateMachineDefinition(dsl string, id2State map[string]Stater) (*StateMachineDefinition, error) {
+func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*StateMachineDefinition, error) {
 	definition := &StateMachineDefinition{}
 	stateMachineDsl, err := toStateMachineDSL(dsl)
 	if err != nil {
-		return nil, errors.Wrap(err, "ToStateMachineDefinition error<|>dsl: "+dsl)
+		return nil, err
 	}
-	// 描述结构实例化
-	definition.Id2State = id2State
+	// state映射
+	definition.Id2State = make(map[string]Stater)
+	for key, baseState := range id2BaseState {
+		desc := key
+		isStart := false
+		isEnd := false
+		for _, state := range stateMachineDsl.States {
+			if state.Id == key {
+				desc = state.Desc
+				isStart = state.IsStart
+				isEnd = state.IsEnd
+				break
+			}
+		}
+		definition.Id2State[key] = &State{
+			BaseStater:  baseState,
+			Id:          key,
+			Desc:        desc,
+			Transitions: make([]*Transition, 0, 5),
+			IsStart:     isStart,
+			IsEnd:       isEnd,
+		}
+	}
 
-	// transition 绑定到state 上
+	// 描述信息映射
+	definition.Name = stateMachineDsl.XMLName.Local
+	definition.Version = stateMachineDsl.Version
+
+	// transition 映射，绑定到state 上
 	for _, t := range stateMachineDsl.Transitions {
-		if srcState, ok := id2State[t.SourceId]; ok {
-			if targetState, ok := id2State[t.TargetId]; ok {
+		if srcState, ok := definition.Id2State[t.SourceId]; ok {
+			if targetState, ok := definition.Id2State[t.TargetId]; ok {
 				transitions := srcState.GetTransitions()
 				transitions = append(transitions, &Transition{
 					Condition: t.Condition,
