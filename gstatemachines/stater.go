@@ -48,14 +48,13 @@ func testExpression(expression string, vars map[string]interface{}) bool {
 	eval := goval.NewEvaluator()
 	result, err := eval.Evaluate(expression, vars, nil)
 	if err != nil {
-		fmt.Println("Evaluate error ")
+		DebugLog("Evaluate error, expression is: " + expression)
 		return false
 	}
 	if v, ok := result.(bool); ok {
-
 		return v
 	}
-	fmt.Println("transfer error ")
+	DebugLog("Expression result transfer error")
 	return false
 }
 
