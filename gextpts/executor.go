@@ -15,7 +15,7 @@ import (
 func Execute(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{}) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
-		panic("args[0] kind not func")
+		panic("gextpts: args[0] kind not func")
 	}
 	if fn.Type().NumOut() != 1 {
 		panic(fmt.Sprintf("func `%v`, the number of returned parameters is not equal to 1", fn.Type()))
@@ -50,14 +50,14 @@ var errorType = reflect.TypeOf(e)
 func ExecuteWithErr(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{}, error) {
 	fn := reflect.ValueOf(f)
 	if fn.Kind() != reflect.Func {
-		panic("args[0] kind not func")
+		panic("gextpts: args[0] kind not func")
 	}
 	if fn.Type().NumOut() != 2 {
-		panic(fmt.Sprintf("func `%v`, the number of returned parameters is not equal to 2", fn.Type()))
+		panic(fmt.Sprintf("gextpts: func `%v`, the number of returned parameters is not equal to 2", fn.Type()))
 	}
 	errType := fn.Type().Out(1)
 	if errType != errorType.Elem() {
-		panic(fmt.Sprintf("func `%v`, the second parameter returned is not of type `error`", fn.Type()))
+		panic(fmt.Sprintf("gextpts: func `%v`, the second parameter returned is not of type `error`", fn.Type()))
 	}
 	inputArgs := inputParams(ctx, args)
 	impls := find(fn)
@@ -92,11 +92,11 @@ func inputParams(ctx context.Context, args []interface{}) []reflect.Value {
 func find(fn reflect.Value) []ExtensionPointer {
 	t := fn.Type().In(0)
 	if t.Kind() != reflect.Interface {
-		panic(fmt.Sprintf("param f(%s), first param not is interface", fn.Type().String()))
+		panic(fmt.Sprintf("gextpts: param f(%s), first param not is interface", fn.Type().String()))
 	}
 	impls := hub.find(t)
 	if len(impls) == 0 {
-		panic(fmt.Sprintf("not find ExtensionPointer implement %s", t.String()))
+		panic(fmt.Sprintf("gextpts: not find ExtensionPointer implement %s", t.String()))
 	}
 	return impls
 }

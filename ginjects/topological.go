@@ -90,7 +90,7 @@ func Toposort(edges []Edge, allNodes []EdgeNode) ([]EdgeNode, []EdgeNode, error)
 			}
 		}
 		sort.Slice(cycleNodes, sortEdgeNodes(cycleNodes))
-		return nil, cycleNodes, fmt.Errorf("graph contains cycle in nodes %s", cycleNodes)
+		return nil, cycleNodes, fmt.Errorf("ginjects: graph contains cycle in nodes %s", cycleNodes)
 	}
 
 	// Return the sorted vertex list

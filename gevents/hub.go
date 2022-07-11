@@ -27,11 +27,11 @@ func execute(ctx context.Context, event interface{}, o *Option) error {
 	}
 	es, defaultExecute := hub.findExecutes(eventType)
 	if len(es) == 0 && o.mustHaveSubscriber {
-		return fmt.Errorf("event type `%T`, not find executor", event)
+		return fmt.Errorf("gevents: event type `%T`, not find executor", event)
 	}
 	if len(es) == 0 {
 		if defaultExecute == nil {
-			return fmt.Errorf("event type `%T`, not find executor", event)
+			return fmt.Errorf("gevents: event type `%T`, not find executor", event)
 		} else {
 			return defaultExecute.Execute(ctx, event)
 		}
