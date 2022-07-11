@@ -52,7 +52,7 @@ type _hub struct {
 func (h *_hub) register(et ExtensionPointer, opts ...ExtPtOptFunc) {
 	t := reflect.TypeOf(et)
 	if h.typeSet[reflect.TypeOf(et)] {
-		panic(fmt.Sprintf("ExtensionPointer type(%s) exist", t.String()))
+		panic(fmt.Sprintf("gextpts: ExtensionPointer type(%s) exist", t.String()))
 	}
 	h.index = h.index + 1
 	opt := extPtOptsExec(opts...)

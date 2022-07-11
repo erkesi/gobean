@@ -15,7 +15,7 @@ func (ep *DefaultPublisher) Publish(ctx context.Context, event interface{}, opts
 		r := recover()
 		if r != nil {
 			msg := string(debug.Stack())
-			err = fmt.Errorf("%v\n%s", r, msg)
+			err = fmt.Errorf("gevents: %v\n%s", r, msg)
 			return
 		}
 	}()

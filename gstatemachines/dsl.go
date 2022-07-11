@@ -6,6 +6,7 @@ import (
 
 type StateMachineDSL struct {
 	XMLName     xml.Name            `xml:"stateMachine"`
+	Name        string              `xml:"name,attr"`
 	Version     string              `xml:"version,attr"`
 	States      []StateDSL          `xml:"states>state"`
 	Transitions []TaskTransitionDSL `xml:"transitions>transition"`
@@ -25,7 +26,7 @@ type TaskTransitionDSL struct {
 	TargetId  string `xml:"targetId,attr"`
 }
 
-func ToStateMachineDSL(dsl string) (StateMachineDSL, error) {
+func toStateMachineDSL(dsl string) (StateMachineDSL, error) {
 	stateMachineDSL := StateMachineDSL{}
 	if err := xml.Unmarshal([]byte(dsl), &stateMachineDSL); err != nil {
 		return StateMachineDSL{}, err

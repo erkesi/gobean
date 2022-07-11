@@ -117,7 +117,7 @@ func (g *graph) provide(objects ...*object) error {
 
 		if o.fields != nil {
 			return fmt.Errorf(
-				"fields were specified on object %s when it was provided",
+				"ginjects: fields were specified on object %s when it was provided",
 				o,
 			)
 		}
@@ -125,7 +125,7 @@ func (g *graph) provide(objects ...*object) error {
 		if o.name == "" {
 			if !isStructPtr(o.reflectType) {
 				return fmt.Errorf(
-					"expected unnamed object value to be a pointer to a struct but got type %s "+
+					"ginjects: expected unnamed object value to be a pointer to a struct but got type %s "+
 						"with value %v",
 					o.reflectType,
 					o.value,
@@ -139,7 +139,7 @@ func (g *graph) provide(objects ...*object) error {
 
 				if _, ok := g.unnamedType[o.reflectType]; ok {
 					return fmt.Errorf(
-						"provided two unnamed instances of type *%s.%s",
+						"ginjects: provided two unnamed instances of type *%s.%s",
 						o.reflectType.Elem().PkgPath(), o.reflectType.Elem().Name(),
 					)
 				}
@@ -152,7 +152,7 @@ func (g *graph) provide(objects ...*object) error {
 			}
 
 			if g.named[o.name] != nil {
-				return fmt.Errorf("provided two instances named %s", o.name)
+				return fmt.Errorf("ginjects: provided two instances named %s", o.name)
 			}
 			g.named[o.name] = o
 		}
@@ -253,7 +253,7 @@ StructLoop:
 		tag, err := parseTag(string(fieldTag))
 		if err != nil {
 			return fmt.Errorf(
-				"unexpected tag format `%s` for field %s in type %s",
+				"ginjects: unexpected tag format `%s` for field %s in type %s",
 				string(fieldTag),
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
@@ -268,7 +268,7 @@ StructLoop:
 		// Cannot be used with unexported fields.
 		if !field.CanSet() {
 			return fmt.Errorf(
-				"inject requested on unexported field %s in type %s",
+				"ginjects: inject requested on unexported field %s in type %s",
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
 			)
@@ -277,7 +277,7 @@ StructLoop:
 		// Inline tag on anything besides a struct is considered invalid.
 		if tag.Inline && fieldType.Kind() != reflect.Struct {
 			return fmt.Errorf(
-				"inline requested on non inlined field %s in type %s",
+				"ginjects: inline requested on non inlined field %s in type %s",
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
 			)
@@ -293,7 +293,7 @@ StructLoop:
 			existing := g.named[tag.Name]
 			if existing == nil {
 				return fmt.Errorf(
-					"did not find object named %s required by field %s in type %s",
+					"ginjects: did not find object named %s required by field %s in type %s",
 					tag.Name,
 					o.reflectType.Elem().Field(i).Name,
 					o.reflectType,
@@ -302,7 +302,7 @@ StructLoop:
 
 			if !existing.reflectType.AssignableTo(fieldType) {
 				return fmt.Errorf(
-					"object named %s of type %s is not assignable to field %s (%s) in type %s",
+					"ginjects: object named %s of type %s is not assignable to field %s (%s) in type %s",
 					tag.Name,
 					fieldType,
 					o.reflectType.Elem().Field(i).Name,
@@ -314,7 +314,7 @@ StructLoop:
 			field.Set(reflect.ValueOf(existing.value))
 			if glogs.Log != nil {
 				glogs.Log.Debugf(
-					"assigned %s to field %s in %s",
+					"ginjects: assigned %s to field %s in %s",
 					existing,
 					o.reflectType.Elem().Field(i).Name,
 					o,
@@ -329,7 +329,7 @@ StructLoop:
 		if fieldType.Kind() == reflect.Struct {
 			if tag.Private {
 				return fmt.Errorf(
-					"cannot use private inject on inline struct on field %s in type %s",
+					"ginjects: cannot use private inject on inline struct on field %s in type %s",
 					o.reflectType.Elem().Field(i).Name,
 					o.reflectType,
 				)
@@ -337,7 +337,7 @@ StructLoop:
 
 			if !tag.Inline {
 				return fmt.Errorf(
-					"inline struct on field %s in type %s requires an explicit \"inline\" tag",
+					"ginjects: inline struct on field %s in type %s requires an explicit \"inline\" tag",
 					o.reflectType.Elem().Field(i).Name,
 					o.reflectType,
 				)
@@ -363,7 +363,7 @@ StructLoop:
 		if fieldType.Kind() == reflect.Map {
 			if !tag.Private {
 				return fmt.Errorf(
-					"inject on map field %s in type %s must be named or private",
+					"ginjects: inject on map field %s in type %s must be named or private",
 					o.reflectType.Elem().Field(i).Name,
 					o.reflectType,
 				)
@@ -383,7 +383,7 @@ StructLoop:
 		// Can only inject Pointers from here on.
 		if !isStructPtr(fieldType) {
 			return fmt.Errorf(
-				"found inject tag on unsupported field %s in type %s",
+				"ginjects: found inject tag on unsupported field %s in type %s",
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
 			)
@@ -454,7 +454,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 		tag, err := parseTag(string(fieldTag))
 		if err != nil {
 			return fmt.Errorf(
-				"unexpected tag format `%s` for field %s in type %s",
+				"ginjects: unexpected tag format `%s` for field %s in type %s",
 				string(fieldTag),
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
@@ -476,7 +476,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 		// instances of an interface.
 		if tag.Private {
 			return fmt.Errorf(
-				"found private inject tag on interface field %s in type %s",
+				"ginjects: found private inject tag on interface field %s in type %s",
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
 			)
@@ -501,7 +501,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 			if existing.reflectType.AssignableTo(fieldType) {
 				if found != nil {
 					return fmt.Errorf(
-						"found two assignable values for field %s in type %s. one type "+
+						"ginjects: found two assignable values for field %s in type %s. one type "+
 							"%s with value %v and another type %s with value %v",
 						o.reflectType.Elem().Field(i).Name,
 						o.reflectType,
@@ -528,7 +528,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 		// If we didn't find an assignable value, we're missing something.
 		if found == nil {
 			return fmt.Errorf(
-				"found no assignable value for field %s in type %s",
+				"ginjects: found no assignable value for field %s in type %s",
 				o.reflectType.Elem().Field(i).Name,
 				o.reflectType,
 			)

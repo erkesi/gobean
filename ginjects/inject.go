@@ -96,7 +96,7 @@ func ObtainByName(name string) interface{} {
 	if obj, ok := g.named[name]; ok {
 		return obj.value
 	}
-	panic(fmt.Sprintf("not found name `%s` instance", name))
+	panic(fmt.Sprintf("ginjects: not found name `%s` instance", name))
 }
 
 // ProvideByValue
@@ -133,25 +133,25 @@ func ObtainByType(value interface{}) interface{} {
 				}
 			}
 			if realVal == nil {
-				panic(fmt.Sprintf("not found type `%s` instance or implement type `%s`", elemTyp.String(), elemTyp.String()))
+				panic(fmt.Sprintf("ginjects: not found type `%s` instance or implement type `%s`", elemTyp.String(), elemTyp.String()))
 			}
 			if len(assignableTypes) > 1 {
-				panic(fmt.Sprintf("exist type `%v` instance or implement type `%s`", assignableTypes, elemTyp.String()))
+				panic(fmt.Sprintf("ginjects: exist type `%v` instance or implement type `%s`", assignableTypes, elemTyp.String()))
 			}
 		case reflect.Struct:
 			if val, ok := g.unnamedType[typ]; ok {
 				realVal = val
 			} else {
-				panic(fmt.Sprintf("not found type `%s` instance", typ.String()))
+				panic(fmt.Sprintf("ginjects: not found type `%s` instance", typ.String()))
 			}
 		default:
-			panic("The value must be a reference pointer to struct or interface")
+			panic("ginjects: the value must be a reference pointer to struct or interface")
 		}
 	}
 	if realVal != nil {
 		return realVal
 	}
-	panic("the value must be a reference pointer")
+	panic("ginjects: the value must be a reference pointer")
 }
 
 func PrintObjects() []string {
