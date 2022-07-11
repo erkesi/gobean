@@ -2,6 +2,7 @@ package gstatemachines
 
 import (
 	"context"
+	"github.com/pkg/errors"
 )
 
 type StateMachineDefinition struct {
@@ -16,6 +17,7 @@ type StateMachine struct {
 }
 
 func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event Event, args ...interface{}) error {
+	DebugLog("Executing, sourceStateId is " + sourceStateId)
 	curState, ok := sm.Definition.Id2State[sourceStateId]
 	if !ok {
 		return ErrStateNotExist
@@ -32,7 +34,7 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event
 		return err
 	}
 
-	nextState, err := sm.curState.Transition(ctx, event)
+	nextState, err := sm.curState.Transform(ctx, event)
 	if err != nil {
 		return err
 	}
@@ -49,11 +51,32 @@ func (sm *StateMachine) CurState() Stater {
 	return sm.curState
 }
 
-func ToStateMachineDefinition(dsl string) (*StateMachineDefinition, error) {
+func ToStateMachineDefinition(dsl string, id2State map[string]Stater) (*StateMachineDefinition, error) {
 	definition := &StateMachineDefinition{}
-	_, err := toStateMachineDSL(dsl)
+	stateMachineDsl, err := toStateMachineDSL(dsl)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ToStateMachineDefinition error<|>dsl: "+dsl)
 	}
+	// 描述结构实例化
+	definition.Id2State = id2State
+
+	// transition 绑定到state 上
+	for _, t := range stateMachineDsl.Transitions {
+		if srcState, ok := id2State[t.SourceId]; ok {
+			if targetState, ok := id2State[t.TargetId]; ok {
+				transitions := srcState.GetTransitions()
+				transitions = append(transitions, &Transition{
+					Condition: t.Condition,
+					Target:    targetState,
+				})
+				srcState.SetTransitions(transitions)
+			} else {
+				return nil, ErrStateEmptyTarget
+			}
+		} else {
+			return nil, ErrStateEmptySource
+		}
+	}
+
 	return definition, nil
 }

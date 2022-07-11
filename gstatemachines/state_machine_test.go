@@ -21,6 +21,57 @@ const dls = `<?xml version="1.0" encoding="utf-8"?>
     </transitions>
 </stateMachine>`
 
+func TestStateMachine_Generate(t *testing.T) {
+
+	id2State := make(map[string]Stater)
+	id2State["Start"] = &State{
+		BaseStater: &Task1State{},
+		Id:         "Start",
+		Desc:       "Start",
+		IsStart:    true,
+		IsEnd:      false,
+	}
+	id2State["Task1"] = &State{
+		BaseStater: &Task1State{},
+		Id:         "Task1",
+		Desc:       "Task1",
+		IsStart:    false,
+		IsEnd:      false,
+	}
+	id2State["Reject"] = &State{
+		BaseStater: &RejectState{},
+		Id:         "Reject",
+		Desc:       "Reject",
+		IsStart:    false,
+		IsEnd:      true,
+	}
+	id2State["End"] = &State{
+		BaseStater: &EndState{},
+		Id:         "End",
+		Desc:       "End",
+		IsStart:    false,
+		IsEnd:      true,
+	}
+
+	definition, err := ToStateMachineDefinition(dls, id2State)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stateMachine := &StateMachine{
+		Definition: definition,
+	}
+	enableDebug()
+	err = stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "Reject"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "End"})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestStateMachine_Execute(t *testing.T) {
 	/*definition, err := ToStateMachineDefinition(dls, map[stateId]*BaseStater )
 	if err != nil {
@@ -30,8 +81,8 @@ func TestStateMachine_Execute(t *testing.T) {
 		Definition: &StateMachineDefinition{
 			Name:    "flow",
 			Version: "1",
-			Id2State: map[string]Stater{"Start": &State{
-				BaseStater: &StartState{},
+			Id2State: map[string]Stater{"Task1": &State{
+				BaseStater: &Task1State{},
 				Id:         "Start",
 				Desc:       "Start",
 				IsStart:    false,
@@ -46,39 +97,21 @@ func TestStateMachine_Execute(t *testing.T) {
 	}
 }
 
-type StartState struct {
-}
-
-func (s *StartState) Entry(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Entry: %v", s)
-	return nil
-}
-
-func (s *StartState) Action(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Action: %v", s)
-	return nil
-}
-
-func (s *StartState) Exit(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Exit: %v", s)
-	return nil
-}
-
 type Task1State struct {
 }
 
 func (s *Task1State) Entry(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Entry: %v", s)
+	fmt.Printf("Entry Task1State: %v\n", s)
 	return nil
 }
 
 func (s *Task1State) Action(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Action: %v", s)
+	fmt.Printf("Action Task1State: %v\n", s)
 	return nil
 }
 
 func (s *Task1State) Exit(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Exit: %v", s)
+	fmt.Printf("Exit Task1State: %v\n", s)
 	return nil
 }
 
@@ -86,17 +119,17 @@ type RejectState struct {
 }
 
 func (s *RejectState) Entry(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Entry: %v", s)
+	fmt.Printf("RejectState Entry: %v\n", s)
 	return nil
 }
 
 func (s *RejectState) Action(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Action: %v", s)
+	fmt.Printf("RejectState Action: %v\n", s)
 	return nil
 }
 
 func (s *RejectState) Exit(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Exit: %v", s)
+	fmt.Printf("RejectState Exit: %v\n", s)
 	return nil
 }
 
@@ -104,16 +137,16 @@ type EndState struct {
 }
 
 func (s *EndState) Entry(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Entry: %v", s)
+	fmt.Printf("EndState Entry: %v\n", s)
 	return nil
 }
 
 func (s *EndState) Action(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Action: %v", s)
+	fmt.Printf("EndState Action: %v\n", s)
 	return nil
 }
 
 func (s *EndState) Exit(ctx context.Context, event Event, args ...interface{}) error {
-	fmt.Printf("Exit: %v", s)
+	fmt.Printf("EndState Exit: %v\n", s)
 	return nil
 }
