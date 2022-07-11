@@ -160,6 +160,20 @@ import github.com/erkesi/gobean/gextpts
 
 > gextpts.ExecuteWithErr(ctx context.Context, f interface{}, args ...interface{}) (bool, interface{}, error)
 
+## gstatemachines 包
+> 简单状态机实现
+> - 定义状态转移流程
+> - 定义状态接口
+> - 状态机执行
+
+```go
+
+import github.com/erkesi/gobean/gstatemachines
+
+```
+
+> 使用示例：[state_machine_test.go](gstatemachines/state_machine_test.go)
+
 
 ## gapplications 包
 
@@ -194,4 +208,5 @@ import github.com/erkesi/gobean/gapplications
 #### 应用销毁，按照优先级顺序（从大到小）调销毁函数
 
 > gapplications.Close()
+
 
