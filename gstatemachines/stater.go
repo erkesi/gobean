@@ -44,7 +44,9 @@ type Transition struct {
 // condition 为表达式
 func (t *Transition) Satisfied(event Event) (bool, error) {
 	r, err := testExpression(t.Condition, event)
-	glogs.Log.Debugf("check condition: %s; result is %t", t.Condition, r)
+	if glogs.Log != nil {
+		glogs.Log.Debugf("check condition: %s; result is %t", t.Condition, r)
+	}
 	return r, err
 }
 
@@ -57,7 +59,9 @@ func testExpression(expression string, vars map[string]interface{}) (bool, error
 	if v, ok := result.(bool); ok {
 		return v, nil
 	}
-	glogs.Log.Debugf("expression result transfer error")
+	if glogs.Log != nil {
+		glogs.Log.Debugf("expression result transfer error")
+	}
 	return false, ErrConditionExpressionResultTypeUnmatch
 }
 

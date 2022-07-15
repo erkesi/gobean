@@ -20,7 +20,7 @@ func Test_testExpression(t *testing.T) {
 	} else {
 		fmt.Println(`toTask2 == true`)
 	}
-	if got, _ := testExpression(`toTask2 == true`, vars); got != true {
+	if got, _ := testExpression(`toTask2 == true`, vars); got == true {
 		t.Errorf("testExpression() = %v, want %v", got, true)
 	} else {
 		fmt.Println(`toTask2 == "true"`)

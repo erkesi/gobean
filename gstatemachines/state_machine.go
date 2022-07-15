@@ -30,7 +30,9 @@ type StateMachine struct {
 }
 
 func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event Event, args ...interface{}) error {
-	glogs.Log.Debugf("executing, sourceStateId is %s", sourceStateId)
+	if glogs.Log != nil {
+		glogs.Log.Debugf("executing, sourceStateId is %s", sourceStateId)
+	}
 
 	curState, ok := sm.Definition.Id2State[sourceStateId]
 	if !ok {
@@ -52,9 +54,9 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event
 	if err != nil {
 		return err
 	}
-
-	glogs.Log.Debugf("executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
-
+	if glogs.Log != nil {
+		glogs.Log.Debugf("executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
+	}
 	err = sm.curState.Exit(ctx, event, args...)
 	if err != nil {
 		return err

@@ -66,10 +66,6 @@ func TestStateMachine_Generate(t *testing.T) {
 }
 
 func TestStateMachine_Execute(t *testing.T) {
-	/*definition, err := ToStateMachineDefinition(dls, map[stateId]*BaseStater )
-	if err != nil {
-		t.Fatal(err)
-	}*/
 	stateMachine := &StateMachine{
 		Definition: &StateMachineDefinition{
 			Name:    "flow",
@@ -85,7 +81,7 @@ func TestStateMachine_Execute(t *testing.T) {
 	}
 
 	err := stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "Reject"})
-	if err != nil {
+	if err.Error() != "gstatemachines: transition all not satisfied" {
 		t.Fatal(err)
 	}
 }
