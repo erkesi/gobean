@@ -9,7 +9,7 @@ type StateMachineDSL struct {
 	Name        string              `xml:"name,attr"`
 	Version     string              `xml:"version,attr"`
 	States      []StateDSL          `xml:"states>state"`
-	Transitions []TaskTransitionDSL `xml:"transitions>transition"`
+	Transitions []StateTransitionDSL `xml:"transitions>transition"`
 }
 
 type StateDSL struct {
@@ -19,7 +19,7 @@ type StateDSL struct {
 	IsEnd   bool   `xml:"isEnd,attr"`
 }
 
-type TaskTransitionDSL struct {
+type StateTransitionDSL struct {
 	Desc      string `xml:",innerxml"`
 	SourceId  string `xml:"sourceId,attr"`
 	Condition string `xml:"condition,attr"`

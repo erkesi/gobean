@@ -42,6 +42,7 @@ func TestStateMachine_Generate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println(definition.PlainUML())
 	stateMachine := &StateMachine{
 		Definition: definition,
 	}

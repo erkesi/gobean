@@ -34,6 +34,7 @@ type BaseStater interface {
 }
 
 type Transition struct {
+	Source    Stater
 	Condition string
 	Target    Stater
 }
