@@ -124,11 +124,11 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 			return nil, ErrStateEmptySource
 		}
 	}
-	definition.Transitions = revTransitions(definition.StartStateId, definition.Id2State)
+	definition.Transitions = recTransitions(definition.StartStateId, definition.Id2State)
 	return definition, nil
 }
 
-func revTransitions(stateId string, id2State map[string]Stater) []*Transition {
+func recTransitions(stateId string, id2State map[string]Stater) []*Transition {
 	var transitions []*Transition
 	var targetStateIds []string
 	for _, transition := range id2State[stateId].GetTransitions() {
@@ -136,7 +136,7 @@ func revTransitions(stateId string, id2State map[string]Stater) []*Transition {
 		targetStateIds = append(targetStateIds, transition.Target.GetId())
 	}
 	for _, targetStateId := range targetStateIds {
-		transitions = append(transitions, revTransitions(targetStateId, id2State)...)
+		transitions = append(transitions, recTransitions(targetStateId, id2State)...)
 	}
 	return transitions
 }
