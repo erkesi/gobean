@@ -159,11 +159,11 @@ func (g *graph) provide(objects ...*object) error {
 
 		if glogs.Log != nil {
 			if o.created {
-				glogs.Log.Debugf("created %s", o)
+				glogs.Log.Debugf("ginjects: created %s", o)
 			} else if o.embedded {
-				glogs.Log.Debugf("provided embedded %s", o)
+				glogs.Log.Debugf("ginjects: provided embedded %s", o)
 			} else {
-				glogs.Log.Debugf("provided %s", o)
+				glogs.Log.Debugf("ginjects: provided %s", o)
 			}
 		}
 	}
@@ -230,7 +230,7 @@ func (g *graph) populate() error {
 			nodes = append(nodes, g.index2Object[node.index].String())
 		}
 		if len(nodes) > 0 {
-			return fmt.Errorf("object depend inject graph is circle, %s", strings.Join(nodes, " >> "))
+			return fmt.Errorf("ginjects: object depend inject graph is circle, %s", strings.Join(nodes, " >> "))
 		}
 		return err
 	}
@@ -372,7 +372,7 @@ StructLoop:
 			field.Set(reflect.MakeMap(fieldType))
 			if glogs.Log != nil {
 				glogs.Log.Debugf(
-					"made map for field %s in %s",
+					"ginjects: made map for field %s in %s",
 					o.reflectType.Elem().Field(i).Name,
 					o,
 				)
@@ -400,7 +400,7 @@ StructLoop:
 					field.Set(reflect.ValueOf(existing.value))
 					if glogs.Log != nil {
 						glogs.Log.Debugf(
-							"assigned existing %s to field %s in %s",
+							"ginjects: assigned existing %s to field %s in %s",
 							existing,
 							o.reflectType.Elem().Field(i).Name,
 							o,
@@ -429,7 +429,7 @@ StructLoop:
 		field.Set(newValue)
 		if glogs.Log != nil {
 			glogs.Log.Debugf(
-				"assigned newly created %s to field %s in %s",
+				"ginjects: assigned newly created %s to field %s in %s",
 				newObject,
 				o.reflectType.Elem().Field(i).Name,
 				o,
@@ -489,7 +489,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 
 		// Named injects must have already been handled in populateExplicit.
 		if tag.Name != "" {
-			panic(fmt.Sprintf("unhandled named instance with name %s", tag.Name))
+			panic(fmt.Sprintf("ginjects: unhandled named instance with name %s", tag.Name))
 		}
 
 		// Find one, and only one assignable value for the field.
@@ -515,7 +515,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 				field.Set(reflect.ValueOf(existing.value))
 				if glogs.Log != nil {
 					glogs.Log.Debugf(
-						"assigned existing %s to interface field %s in %s",
+						"ginjects: assigned existing %s to interface field %s in %s",
 						existing,
 						o.reflectType.Elem().Field(i).Name,
 						o,
@@ -604,7 +604,7 @@ func (g *graph) addInjectFieldIndex(refType reflect.Type, i int) {
 	m[i] = struct{}{}
 }
 
-var errInvalidTag = errors.New("invalid tag")
+var errInvalidTag = errors.New("ginjects: invalid tag")
 
 // structTagExtract the quoted value for the given name returning it if it is found. The
 // found boolean helps differentiate between the "empty and found" vs "empty

@@ -26,7 +26,7 @@ func Init() {
 			initFn := obj.initFn
 			if initFn != nil {
 				if glogs.Log != nil {
-					glogs.Log.Debugf("init inject object(%v)", obj)
+					glogs.Log.Debugf("ginjects: init inject object(%v)", obj)
 				}
 				initFn()
 			}
@@ -39,7 +39,7 @@ func Close() {
 		closeFn := g.objects()[i].closeFn
 		if closeFn != nil {
 			if glogs.Log != nil {
-				glogs.Log.Debugf("close inject object(%v)", g.objects()[i])
+				glogs.Log.Debugf("ginjects: close inject object(%v)", g.objects()[i])
 			}
 			closeFn()
 		}
@@ -118,7 +118,7 @@ func ProvideByValue(value interface{}, opts ...ProvideOptFunc) {
 func ObtainByType(value interface{}) interface{} {
 	typ := reflect.TypeOf(value)
 	if typ == nil {
-		panic("the value must be a reference pointer")
+		panic("ginjects: the value must be a reference pointer")
 	}
 	var realVal interface{}
 	if typ.Kind() == reflect.Ptr {

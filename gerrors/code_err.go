@@ -44,5 +44,5 @@ func (ce *CodeError) Err() error {
 }
 
 func (ce *CodeError) Error() string {
-	return fmt.Sprintf("code:%d, msg:%s, err:%v", ce.code, ce.msg, ce.err)
+	return fmt.Sprintf("gerrors: code:%d, msg:%s, err:%v", ce.code, ce.msg, ce.err)
 }

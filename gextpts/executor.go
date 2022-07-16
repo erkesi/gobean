@@ -18,7 +18,7 @@ func Execute(ctx context.Context, f interface{}, args ...interface{}) (bool, int
 		panic("gextpts: args[0] kind not func")
 	}
 	if fn.Type().NumOut() != 1 {
-		panic(fmt.Sprintf("func `%v`, the number of returned parameters is not equal to 1", fn.Type()))
+		panic(fmt.Sprintf("gextpts: func `%v`, the number of returned parameters is not equal to 1", fn.Type()))
 	}
 	inputArgs := inputParams(ctx, args)
 	impls := find(fn)

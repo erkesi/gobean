@@ -71,7 +71,9 @@ func TestInterfaceFunction(t *testing.T) {
 	fmt.Println(fn.Type().NumIn())
 	fmt.Println(fn.Type().In(0))
 	fmt.Println(fn.Type().In(1))
-	input := []reflect.Value{reflect.ValueOf(&UserExtensionPointer1{}), reflect.ValueOf(&User{Id: 1})}
+	fmt.Println(fn.Type().In(2))
+	input := []reflect.Value{reflect.ValueOf(&UserExtensionPointer1{}),
+		reflect.ValueOf(context.TODO()), reflect.ValueOf(&User{Id: 1})}
 	matchF := ExtensionPointer.Match
 	matchFn := reflect.ValueOf(matchF)
 	rets := matchFn.Call(input)
