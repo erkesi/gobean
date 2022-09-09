@@ -3,12 +3,34 @@ package gevents
 import (
 	"context"
 	"fmt"
-	"github.com/erkesi/gobean/ginjects"
 	"reflect"
+	"sort"
+
+	"github.com/erkesi/gobean/ginjects"
 )
 
-func Register(executors ...Executor) {
-	hub.register(executors...)
+type registeOpt struct {
+	priority int
+}
+
+type RegisteOptFunc func(opt *registeOpt)
+
+// RegisteWithPriority
+// priority 越大越先执行
+func RegisteWithPriority(priority int) RegisteOptFunc {
+	return func(opt *registeOpt) {
+		opt.priority = priority
+	}
+}
+
+func Register(executor Executor, opts ...RegisteOptFunc) {
+	opt := &registeOpt{}
+	for _, f := range opts {
+		f(opt)
+	}
+	hub.register(&executorExt{
+		executor: executor,
+		priority: opt.priority})
 }
 
 func SetDefaultExecutor(executor Executor) {
@@ -25,11 +47,11 @@ func execute(ctx context.Context, event interface{}, o *Option) error {
 	if eventType.Kind() == reflect.Ptr {
 		eventType = eventType.Elem()
 	}
-	es, defaultExecute := hub.findExecutes(eventType)
-	if len(es) == 0 && o.mustHaveSubscriber {
+	exts, defaultExecute := hub.findExecutes(eventType)
+	if len(exts) == 0 && o.mustHaveSubscriber {
 		return fmt.Errorf("gevents: event type `%T`, not find executor", event)
 	}
-	if len(es) == 0 {
+	if len(exts) == 0 {
 		if defaultExecute == nil {
 			return fmt.Errorf("gevents: event type `%T`, not find executor", event)
 		} else {
@@ -37,8 +59,8 @@ func execute(ctx context.Context, event interface{}, o *Option) error {
 		}
 	}
 	var err error
-	for _, e := range es {
-		err = e.Execute(ctx, event)
+	for _, ext := range exts {
+		err = ext.executor.Execute(ctx, event)
 		if err != nil {
 			break
 		}
@@ -49,34 +71,41 @@ func execute(ctx context.Context, event interface{}, o *Option) error {
 var hub = &_hub{}
 
 type _hub struct {
-	executes        map[reflect.Type][]Executor
+	executes        map[reflect.Type][]*executorExt
 	defaultExecutor Executor
 }
 
-func (h *_hub) register(executors ...Executor) {
+func (h *_hub) register(ext *executorExt) {
 	if h.executes == nil {
-		h.executes = map[reflect.Type][]Executor{}
+		h.executes = map[reflect.Type][]*executorExt{}
 	}
-	for _, executor := range executors {
-		ginjects.ProvideByValue(executor, ginjects.ProvideWithPriorityTop1())
-		for _, eventType := range executor.Types() {
-			if eventType.Kind() == reflect.Ptr {
-				eventType = eventType.Elem()
-			}
-			h.executes[eventType] = append(h.executes[eventType], executor)
+	ginjects.ProvideByValue(ext.executor, ginjects.ProvideWithPriorityTop1())
+	eventTypeSet := map[reflect.Type]bool{}
+	for _, eventType := range ext.executor.Types() {
+		if eventType.Kind() == reflect.Ptr {
+			eventType = eventType.Elem()
+		}
+		if !eventTypeSet[eventType] {
+			eventTypeSet[eventType] = true
+			h.executes[eventType] = append(h.executes[eventType], ext)
 		}
 	}
+	for eventType := range eventTypeSet {
+		sort.Slice(h.executes[eventType], sortExecutes(h.executes[eventType]))
+	}
 }
+
+func sortExecutes(exts []*executorExt) func(i int, j int) bool {
+	return func(i, j int) bool {
+		return exts[i].priority > exts[j].priority
+	}
+}
+
 func (h *_hub) clear() {
 	h.executes = nil
 	h.defaultExecutor = nil
 }
 
-func (h *_hub) SetDefaultExecutor(executor Executor) {
-	ginjects.ProvideByValue(executor)
-	h.defaultExecutor = executor
-}
-
-func (h *_hub) findExecutes(eventType reflect.Type) ([]Executor, Executor) {
+func (h *_hub) findExecutes(eventType reflect.Type) ([]*executorExt, Executor) {
 	return h.executes[eventType], h.defaultExecutor
 }

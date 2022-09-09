@@ -43,8 +43,21 @@ func (h *UserModifyEventHandler) Types() []reflect.Type {
 	return []reflect.Type{reflect.TypeOf(&UserModifyEvent{})}
 }
 
-func TestMustHaveSubscriber(t *testing.T) {
-	Register(&UserModifyEventHandler{})
+type UserModifyEventHandler1 struct {
+}
+
+func (h *UserModifyEventHandler1) Execute(ctx context.Context, event interface{}) error {
+	fmt.Println(event.(*UserModifyEvent))
+	return nil
+}
+
+func (h *UserModifyEventHandler1) Types() []reflect.Type {
+	return []reflect.Type{reflect.TypeOf(&UserModifyEvent{})}
+}
+
+func TestEventPublish(t *testing.T) {
+	Register(&UserModifyEventHandler{}, RegisteWithPriority(100))
+	Register(&UserModifyEventHandler1{}, RegisteWithPriority(101))
 	SetDefaultExecutor(&DefaultEventHandler{})
 	publisher := &DefaultPublisher{}
 	err := publisher.Publish(context.Background(), &UserModifyEvent{

@@ -9,7 +9,8 @@ import (
 type DefaultPublisher struct {
 }
 
-func (ep *DefaultPublisher) Publish(ctx context.Context, event interface{}, opts ...PublishOpt) error {
+func (ep *DefaultPublisher) Publish(ctx context.Context, event interface{}, 
+	opts ...PublishOpt) error {
 	var err error
 	defer func() {
 		r := recover()
