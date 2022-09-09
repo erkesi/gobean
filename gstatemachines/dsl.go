@@ -5,10 +5,10 @@ import (
 )
 
 type StateMachineDSL struct {
-	XMLName     xml.Name            `xml:"stateMachine"`
-	Name        string              `xml:"name,attr"`
-	Version     string              `xml:"version,attr"`
-	States      []StateDSL          `xml:"states>state"`
+	XMLName     xml.Name             `xml:"stateMachine"`
+	Name        string               `xml:"name,attr"`
+	Version     string               `xml:"version,attr"`
+	States      []StateDSL           `xml:"states>state"`
 	Transitions []StateTransitionDSL `xml:"transitions>transition"`
 }
 
@@ -24,6 +24,7 @@ type StateTransitionDSL struct {
 	SourceId  string `xml:"sourceId,attr"`
 	Condition string `xml:"condition,attr"`
 	TargetId  string `xml:"targetId,attr"`
+	Actions   string `xml:"actions,attr"`
 }
 
 func toStateMachineDSL(dsl string) (StateMachineDSL, error) {

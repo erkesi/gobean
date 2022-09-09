@@ -3,6 +3,8 @@ package gstatemachines
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/erkesi/gobean/glogs"
 )
@@ -18,7 +20,10 @@ type StateMachineDefinition struct {
 func (d StateMachineDefinition) PlainUML() string {
 	plainUML := "@startuml\n\n"
 	for _, transition := range d.Transitions {
-		plainUML += fmt.Sprintf("%s --> %s : %s\n", transition.Source.GetId(), transition.Target.GetId(), transition.Condition)
+		if transition.Target != nil {
+			plainUML += fmt.Sprintf("%s --> %s : %s\n", transition.Source.GetId(),
+				transition.Target.GetId(), transition.Condition)
+		}
 	}
 	plainUML += "\n@enduml"
 	return plainUML
@@ -29,7 +34,8 @@ type StateMachine struct {
 	curState   Stater
 }
 
-func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event Event, args ...interface{}) error {
+func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
+	event Event, args ...interface{}) error {
 	if glogs.Log != nil {
 		glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s", sourceStateId)
 	}
@@ -44,18 +50,19 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string, event
 	if err != nil {
 		return err
 	}
-
-	err = curState.Action(ctx, event, args...)
-	if err != nil {
-		return err
-	}
-
-	nextState, err := sm.curState.Transform(ctx, event)
+	nextState, err := sm.curState.Transform(ctx, event, args)
 	if err != nil {
 		return err
 	}
 	if glogs.Log != nil {
-		glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
+		if nextState == nil {
+			glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, sourceStateId)
+		} else {
+			glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
+		}
+	}
+	if nextState == nil {
+		return nil
 	}
 	err = sm.curState.Exit(ctx, event, args...)
 	if err != nil {
@@ -109,17 +116,29 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 	// transition 映射，绑定到state 上
 	for _, t := range stateMachineDsl.Transitions {
 		if sourceState, ok := definition.Id2State[t.SourceId]; ok {
-			if targetState, ok := definition.Id2State[t.TargetId]; ok {
-				transitions := sourceState.GetTransitions()
-				transitions = append(transitions, &Transition{
-					Source:    sourceState,
-					Condition: t.Condition,
-					Target:    targetState,
-				})
-				sourceState.SetTransitions(transitions)
-			} else {
+			if _, ok := definition.Id2State[t.TargetId]; len(t.Actions) == 0 && !ok {
 				return nil, ErrStateEmptyTarget
 			}
+			transition := &Transition{
+				Source:    sourceState,
+				Condition: t.Condition,
+			}
+			if len(t.Actions) > 0 {
+				value := reflect.ValueOf(sourceState.(*State).BaseStater)
+				for _, action := range strings.Split(t.Actions, ",") {
+					methodValue := value.MethodByName(action)
+					if !methodValue.IsValid() || methodValue.IsZero() {
+						return nil, fmt.Errorf(actionInvalidErrFmt, t.SourceId, action)
+					}
+					transition.Actions = append(transition.Actions, methodValue)
+				}
+			}
+			if targetState, ok := definition.Id2State[t.TargetId]; ok {
+				transition.Target = targetState
+			}
+			transitions := sourceState.GetTransitions()
+			transitions = append(transitions, transition)
+			sourceState.SetTransitions(transitions)
 		} else {
 			return nil, ErrStateEmptySource
 		}
@@ -128,12 +147,20 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 	return definition, nil
 }
 
+/*
+func methodByName(value reflect.Value, methodName string) reflect.Value {
+
+}
+*/
+
 func recTransitions(stateId string, id2State map[string]Stater) []*Transition {
 	var transitions []*Transition
 	var targetStateIds []string
 	for _, transition := range id2State[stateId].GetTransitions() {
 		transitions = append(transitions, transition)
-		targetStateIds = append(targetStateIds, transition.Target.GetId())
+		if transition.Target != nil {
+			targetStateIds = append(targetStateIds, transition.Target.GetId())
+		}
 	}
 	for _, targetStateId := range targetStateIds {
 		transitions = append(transitions, recTransitions(targetStateId, id2State)...)

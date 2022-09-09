@@ -16,6 +16,7 @@ func TestToStateMachineDSL(t *testing.T) {
     <transitions>
         <transition sourceId="Start" targetId="Task1" condition="operation==&quot;toTask1&quot;">Start->Task1</transition>
         <transition sourceId="Task1" targetId="Reject" condition="operation==&quot;Reject&quot;">Task1->Reject</transition>
+        <transition sourceId="Task1" actions="Check,Edit" condition="operation==&quot;Edit&quot;">Edit</transition>
         <transition sourceId="Task1" targetId="End" condition="operation==&quot;End&quot;">Task1->End</transition>
     </transitions>
 </stateMachine>`

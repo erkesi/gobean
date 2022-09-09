@@ -3,14 +3,18 @@ package gstatemachines
 import (
 	"context"
 	"fmt"
+	"reflect"
+
 	"github.com/erkesi/gobean/glogs"
 	"github.com/maja42/goval"
 )
 
 type Stater interface {
 	BaseStater
+
 	// Transform 流转
-	Transform(ctx context.Context, event Event) (Stater, error)
+	Transform(ctx context.Context, event Event, args ...interface{}) (Stater, error)
+
 	// Validate 校验
 	Validate() error
 
@@ -27,8 +31,6 @@ type Stater interface {
 type BaseStater interface {
 	// Entry 进入状态时执行
 	Entry(ctx context.Context, event Event, args ...interface{}) error
-	// Action 当时状态时执行
-	Action(ctx context.Context, event Event, args ...interface{}) error
 	// Exit 退出状态时执行
 	Exit(ctx context.Context, event Event, args ...interface{}) error
 }
@@ -37,6 +39,7 @@ type Transition struct {
 	Source    Stater
 	Condition string
 	Target    Stater
+	Actions   []reflect.Value
 }
 
 // Satisfied
@@ -74,7 +77,8 @@ type State struct {
 }
 
 func (s *State) String() string {
-	return fmt.Sprintf("[State] Id:%s, Desc:%s, IsStart:%t, IsEnd:%t", s.Id, s.Desc, s.IsStart, s.IsEnd)
+	return fmt.Sprintf("[State] Id:%s, Desc:%s, IsStart:%t, IsEnd:%t",
+		s.Id, s.Desc, s.IsStart, s.IsEnd)
 }
 
 func (s *State) GetId() string {
@@ -89,13 +93,33 @@ func (s *State) SetTransitions(ts []*Transition) {
 	s.Transitions = ts
 }
 
-func (s *State) Transform(ctx context.Context, event Event) (Stater, error) {
+func (s *State) Transform(ctx context.Context, event Event, args ...interface{}) (Stater, error) {
 	for _, transition := range s.Transitions {
 		ok, err := transition.Satisfied(event)
 		if err != nil {
 			return nil, err
 		}
 		if ok {
+			if len(transition.Actions) > 0 {
+				var inputArgs []reflect.Value
+				inputArgs = append(inputArgs, reflect.ValueOf(ctx))
+				inputArgs = append(inputArgs, reflect.ValueOf(event))
+				for _, arg := range args {
+					inputArgs = append(inputArgs, reflect.ValueOf(arg))
+				}
+				for _, action := range transition.Actions {
+					outValues := action.Call(inputArgs)
+					if !outValues[0].IsZero() {
+						err = outValues[0].Interface().(error)
+					}
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+			if transition.Target == nil {
+				return nil, nil
+			}
 			return transition.Target, nil
 		}
 
