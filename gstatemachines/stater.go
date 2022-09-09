@@ -48,7 +48,7 @@ type Transition struct {
 func (t *Transition) Satisfied(event Event) (bool, error) {
 	r, err := testExpression(t.Condition, event)
 	if glogs.Log != nil {
-		glogs.Log.Debugf("gstatemachines: check condition: %s; result is %t", t.Condition, r)
+		glogs.Log.Debugf(context.TODO(), "gstatemachines: check condition: %s; result is %t", t.Condition, r)
 	}
 	return r, err
 }
@@ -63,7 +63,7 @@ func testExpression(expression string, vars map[string]interface{}) (bool, error
 		return v, nil
 	}
 	if glogs.Log != nil {
-		glogs.Log.Debugf("gstatemachines: expression result transfer error")
+		glogs.Log.Debugf(context.TODO(), "gstatemachines: expression result transfer error")
 	}
 	return false, ErrConditionExpressionResultTypeUnmatch
 }

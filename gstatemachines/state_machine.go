@@ -37,7 +37,7 @@ type StateMachine struct {
 func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	event Event, args ...interface{}) error {
 	if glogs.Log != nil {
-		glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s", sourceStateId)
+		glogs.Log.Debugf(context.TODO(), "gstatemachines: executing, sourceStateId is %s", sourceStateId)
 	}
 
 	curState, ok := sm.Definition.Id2State[sourceStateId]
@@ -56,9 +56,9 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	}
 	if glogs.Log != nil {
 		if nextState == nil {
-			glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, sourceStateId)
+			glogs.Log.Debugf(context.TODO(), "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, sourceStateId)
 		} else {
-			glogs.Log.Debugf("gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
+			glogs.Log.Debugf(context.TODO(), "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
 		}
 	}
 	if nextState == nil {

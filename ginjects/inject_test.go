@@ -1,6 +1,7 @@
 package ginjects
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/erkesi/gobean/glogs"
@@ -54,7 +55,11 @@ func (c *C) Close() {
 type Log struct {
 }
 
-func (l Log) Debugf(format string, v ...interface{}) {
+func (l Log) Debugf(ctx context.Context, format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
+}
+
+func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
 	fmt.Printf(format+"\n", v...)
 }
 

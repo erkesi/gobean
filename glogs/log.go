@@ -1,5 +1,7 @@
 package glogs
 
+import "context"
+
 var Log Logger
 
 func Init(logger Logger) {
@@ -7,5 +9,6 @@ func Init(logger Logger) {
 }
 
 type Logger interface {
-	Debugf(format string, v ...interface{})
+	Debugf(ctx context.Context, format string, v ...interface{})
+	Errorf(ctx context.Context, format string, v ...interface{})
 }

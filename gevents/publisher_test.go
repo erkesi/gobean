@@ -67,6 +67,7 @@ func TestEventPublish(t *testing.T) {
 	}, MustHaveSubscriber())
 	if err != nil {
 		t.Fatal(err)
+		return
 	}
 	err = publisher.Publish(context.Background(), &OrderModifyEvent{
 		Id:    0,
@@ -75,5 +76,6 @@ func TestEventPublish(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+		return
 	}
 }

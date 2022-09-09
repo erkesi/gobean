@@ -1,10 +1,12 @@
 package ginjects
 
 import (
+	"context"
 	"fmt"
-	"github.com/erkesi/gobean/glogs"
 	"math"
 	"reflect"
+
+	"github.com/erkesi/gobean/glogs"
 )
 
 type ObjectInit interface {
@@ -26,7 +28,7 @@ func Init() {
 			initFn := obj.initFn
 			if initFn != nil {
 				if glogs.Log != nil {
-					glogs.Log.Debugf("ginjects: init inject object(%v)", obj)
+					glogs.Log.Debugf(context.TODO(), "ginjects: init inject object(%v)", obj)
 				}
 				initFn()
 			}
@@ -39,7 +41,7 @@ func Close() {
 		closeFn := g.objects()[i].closeFn
 		if closeFn != nil {
 			if glogs.Log != nil {
-				glogs.Log.Debugf("ginjects: close inject object(%v)", g.objects()[i])
+				glogs.Log.Debugf(context.TODO(), "ginjects: close inject object(%v)", g.objects()[i])
 			}
 			closeFn()
 		}

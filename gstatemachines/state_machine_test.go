@@ -27,7 +27,11 @@ const dls = `<?xml version="1.0" encoding="utf-8"?>
 type Log struct {
 }
 
-func (l Log) Debugf(format string, v ...interface{}) {
+func (l Log) Debugf(ctx context.Context, format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
+}
+
+func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
 	fmt.Printf(format+"\n", v...)
 }
 

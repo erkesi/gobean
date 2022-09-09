@@ -26,13 +26,15 @@
 package ginjects
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/erkesi/gobean/glogs"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/erkesi/gobean/glogs"
 )
 
 // An object in the graph.
@@ -159,11 +161,11 @@ func (g *graph) provide(objects ...*object) error {
 
 		if glogs.Log != nil {
 			if o.created {
-				glogs.Log.Debugf("ginjects: created %s", o)
+				glogs.Log.Debugf(context.TODO(), "ginjects: created %s", o)
 			} else if o.embedded {
-				glogs.Log.Debugf("ginjects: provided embedded %s", o)
+				glogs.Log.Debugf(context.TODO(), "ginjects: provided embedded %s", o)
 			} else {
-				glogs.Log.Debugf("ginjects: provided %s", o)
+				glogs.Log.Debugf(context.TODO(), "ginjects: provided %s", o)
 			}
 		}
 	}
@@ -313,7 +315,7 @@ StructLoop:
 
 			field.Set(reflect.ValueOf(existing.value))
 			if glogs.Log != nil {
-				glogs.Log.Debugf(
+				glogs.Log.Debugf(context.TODO(),
 					"ginjects: assigned %s to field %s in %s",
 					existing,
 					o.reflectType.Elem().Field(i).Name,
@@ -371,7 +373,7 @@ StructLoop:
 
 			field.Set(reflect.MakeMap(fieldType))
 			if glogs.Log != nil {
-				glogs.Log.Debugf(
+				glogs.Log.Debugf(context.TODO(),
 					"ginjects: made map for field %s in %s",
 					o.reflectType.Elem().Field(i).Name,
 					o,
@@ -399,7 +401,7 @@ StructLoop:
 				if existing.reflectType.AssignableTo(fieldType) {
 					field.Set(reflect.ValueOf(existing.value))
 					if glogs.Log != nil {
-						glogs.Log.Debugf(
+						glogs.Log.Debugf(context.TODO(),
 							"ginjects: assigned existing %s to field %s in %s",
 							existing,
 							o.reflectType.Elem().Field(i).Name,
@@ -428,7 +430,7 @@ StructLoop:
 		// Finally assign the newly created object to our field.
 		field.Set(newValue)
 		if glogs.Log != nil {
-			glogs.Log.Debugf(
+			glogs.Log.Debugf(context.TODO(),
 				"ginjects: assigned newly created %s to field %s in %s",
 				newObject,
 				o.reflectType.Elem().Field(i).Name,
@@ -514,7 +516,7 @@ func (g *graph) populateUnnamedInterface(o *object) error {
 				found = existing
 				field.Set(reflect.ValueOf(existing.value))
 				if glogs.Log != nil {
-					glogs.Log.Debugf(
+					glogs.Log.Debugf(context.TODO(),
 						"ginjects: assigned existing %s to interface field %s in %s",
 						existing,
 						o.reflectType.Elem().Field(i).Name,

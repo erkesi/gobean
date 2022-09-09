@@ -1,13 +1,15 @@
 package ginjects
 
 import (
+	"context"
 	"fmt"
-	"github.com/erkesi/gobean/glogs"
 	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/erkesi/gobean/glogs"
 
 	graphtesta "github.com/erkesi/gobean/ginjects/graphtesta"
 	graphtestb "github.com/erkesi/gobean/ginjects/graphtestb"
@@ -933,7 +935,11 @@ type logger struct {
 	next     int
 }
 
-func (l *logger) Debugf(f string, v ...interface{}) {
+func (l *logger) Errorf(ctx context.Context, format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
+}
+
+func (l *logger) Debugf(ctx context.Context, f string, v ...interface{}) {
 	actual := fmt.Sprintf(f, v...)
 	if l.next == len(l.Expected) {
 		l.T.Fatalf(`unexpected log "%s"`, actual)
