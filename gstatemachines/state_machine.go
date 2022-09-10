@@ -37,7 +37,7 @@ type StateMachine struct {
 func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	event Event, args ...interface{}) error {
 	if glogs.Log != nil {
-		glogs.Log.Debugf(context.TODO(), "gstatemachines: executing, sourceStateId is %s", sourceStateId)
+		glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s", sourceStateId)
 	}
 
 	curState, ok := sm.Definition.Id2State[sourceStateId]
@@ -56,9 +56,9 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	}
 	if glogs.Log != nil {
 		if nextState == nil {
-			glogs.Log.Debugf(context.TODO(), "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, sourceStateId)
+			glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, sourceStateId)
 		} else {
-			glogs.Log.Debugf(context.TODO(), "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
+			glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
 		}
 	}
 	if nextState == nil {
@@ -127,7 +127,7 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 				value := reflect.ValueOf(sourceState.(*State).BaseStater)
 				for _, action := range strings.Split(t.Actions, ",") {
 					methodValue := value.MethodByName(action)
-					if !methodValue.IsValid() || methodValue.IsZero() {
+					if !methodValue.IsValid() {
 						return nil, fmt.Errorf(actionInvalidErrFmt, t.SourceId, action)
 					}
 					transition.Actions = append(transition.Actions, methodValue)
@@ -146,12 +146,6 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 	definition.Transitions = recTransitions(definition.StartStateId, definition.Id2State)
 	return definition, nil
 }
-
-/*
-func methodByName(value reflect.Value, methodName string) reflect.Value {
-
-}
-*/
 
 func recTransitions(stateId string, id2State map[string]Stater) []*Transition {
 	var transitions []*Transition

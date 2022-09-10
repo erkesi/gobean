@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/erkesi/gobean/glogs"
 	"github.com/maja42/goval"
 )
 
@@ -46,11 +45,7 @@ type Transition struct {
 // event 为变量池
 // condition 为表达式
 func (t *Transition) Satisfied(event Event) (bool, error) {
-	r, err := testExpression(t.Condition, event)
-	if glogs.Log != nil {
-		glogs.Log.Debugf(context.TODO(), "gstatemachines: check condition: %s; result is %t", t.Condition, r)
-	}
-	return r, err
+	return testExpression(t.Condition, event)
 }
 
 func testExpression(expression string, vars map[string]interface{}) (bool, error) {
@@ -61,9 +56,6 @@ func testExpression(expression string, vars map[string]interface{}) (bool, error
 	}
 	if v, ok := result.(bool); ok {
 		return v, nil
-	}
-	if glogs.Log != nil {
-		glogs.Log.Debugf(context.TODO(), "gstatemachines: expression result transfer error")
 	}
 	return false, ErrConditionExpressionResultTypeUnmatch
 }
@@ -99,30 +91,30 @@ func (s *State) Transform(ctx context.Context, event Event, args ...interface{})
 		if err != nil {
 			return nil, err
 		}
-		if ok {
-			if len(transition.Actions) > 0 {
-				var inputArgs []reflect.Value
-				inputArgs = append(inputArgs, reflect.ValueOf(ctx))
-				inputArgs = append(inputArgs, reflect.ValueOf(event))
-				for _, arg := range args {
-					inputArgs = append(inputArgs, reflect.ValueOf(arg))
-				}
-				for _, action := range transition.Actions {
-					outValues := action.Call(inputArgs)
-					if !outValues[0].IsZero() {
-						err = outValues[0].Interface().(error)
-					}
-					if err != nil {
-						return nil, err
-					}
-				}
-			}
-			if transition.Target == nil {
-				return nil, nil
-			}
-			return transition.Target, nil
+		if !ok {
+			continue
 		}
-
+		if len(transition.Actions) > 0 {
+			var inputArgs []reflect.Value
+			inputArgs = append(inputArgs, reflect.ValueOf(ctx))
+			inputArgs = append(inputArgs, reflect.ValueOf(event))
+			for _, arg := range args {
+				inputArgs = append(inputArgs, reflect.ValueOf(arg))
+			}
+			for _, action := range transition.Actions {
+				outValues := action.Call(inputArgs)
+				if !outValues[0].IsZero() {
+					err = outValues[0].Interface().(error)
+				}
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+		if transition.Target == nil {
+			return nil, nil
+		}
+		return transition.Target, nil
 	}
 	return nil, ErrTransitionAllNotSatisfied
 }
