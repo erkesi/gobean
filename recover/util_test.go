@@ -36,3 +36,12 @@ func TestGoWithRecover(t *testing.T) {
 
 	// time.Sleep(5 * time.Second)
 }
+
+func TestRecoverForErr(t *testing.T) {
+	err := RecoverForErr(func() error {
+		panic(123)
+	})
+	if err != nil {
+		t.Log(err)
+	}
+}

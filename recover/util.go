@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime/debug"
 
+	"github.com/erkesi/gobean/gerrors"
 	"github.com/erkesi/gobean/glogs"
 )
 
@@ -15,12 +16,23 @@ func Recover(f func()) func() {
 	return func() {
 		if glogs.Log != nil {
 			defer func() {
-				if err := recover(); err != nil {
-					glogs.Log.Debugf(context.TODO(),
-						"recover: err is %v, %s", err, string(debug.Stack()))
+				if r := recover(); r != nil {
+					glogs.Log.Errorf(context.TODO(), "%v",
+						gerrors.NewPanicError(r, string(debug.Stack())))
 				}
 			}()
 		}
 		f()
 	}
+}
+
+func RecoverForErr(f func() error) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = gerrors.NewPanicError(r, string(debug.Stack()))
+			return
+		}
+	}()
+	err = f()
+	return err
 }
