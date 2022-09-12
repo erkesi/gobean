@@ -2,7 +2,6 @@ package gevents
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -20,10 +19,13 @@ type OrderModifyEvent struct {
 }
 
 type DefaultEventHandler struct {
+	T testing.TB
 }
 
 func (h *DefaultEventHandler) Execute(ctx context.Context, event interface{}) error {
-	fmt.Printf("default:%v", event)
+	if e, ok := event.(*OrderModifyEvent); !ok || e.Id != 3 {
+		h.T.Fatal("e.id != 3")
+	}
 	return nil
 }
 
@@ -32,10 +34,13 @@ func (h *DefaultEventHandler) Types() []reflect.Type {
 }
 
 type UserModifyEventHandler struct {
+	T testing.TB
 }
 
 func (h *UserModifyEventHandler) Execute(ctx context.Context, event interface{}) error {
-	fmt.Println(event.(*UserModifyEvent))
+	if e, ok := event.(*UserModifyEvent); !ok || e.Id != 2 {
+		h.T.Fatalf("e.id:%d", e.Id)
+	}
 	return nil
 }
 
@@ -44,10 +49,15 @@ func (h *UserModifyEventHandler) Types() []reflect.Type {
 }
 
 type UserModifyEventHandler1 struct {
+	T testing.TB
 }
 
 func (h *UserModifyEventHandler1) Execute(ctx context.Context, event interface{}) error {
-	fmt.Println(event.(*UserModifyEvent))
+	if e, ok := event.(*UserModifyEvent); !ok || e.Id != 1 {
+		h.T.Fatal("e.id != 1")
+	} else {
+		e.Id = 2
+	}
 	return nil
 }
 
@@ -56,12 +66,12 @@ func (h *UserModifyEventHandler1) Types() []reflect.Type {
 }
 
 func TestEventPublish(t *testing.T) {
-	Register(&UserModifyEventHandler{}, RegisteWithPriority(100))
-	Register(&UserModifyEventHandler1{}, RegisteWithPriority(101))
-	SetDefaultExecutor(&DefaultEventHandler{})
+	Register(&UserModifyEventHandler{T: t}, RegisteWithPriority(100))
+	Register(&UserModifyEventHandler1{T: t}, RegisteWithPriority(101))
+	SetDefaultExecutor(&DefaultEventHandler{T: t})
 	publisher := &DefaultPublisher{}
 	err := publisher.Publish(context.Background(), &UserModifyEvent{
-		Id:    0,
+		Id:    1,
 		Name:  "zhaoche",
 		State: "add",
 	}, MustHaveSubscriber())
@@ -70,7 +80,7 @@ func TestEventPublish(t *testing.T) {
 		return
 	}
 	err = publisher.Publish(context.Background(), &OrderModifyEvent{
-		Id:    0,
+		Id:    3,
 		Name:  "zhaoche",
 		State: "add",
 	})
