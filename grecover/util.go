@@ -27,12 +27,18 @@ func Recover(f func()) func() {
 }
 
 func RecoverForErr(f func() error) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = gerrors.NewPanicError(r, string(debug.Stack()))
-			return
-		}
-	}()
-	err = f()
-	return err
+	return RecoverFn(f)()
+}
+
+func RecoverFn(fn func() error) func() error {
+	return func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = gerrors.NewPanicError(r, string(debug.Stack()))
+				return
+			}
+		}()
+		err = fn()
+		return err
+	}
 }
