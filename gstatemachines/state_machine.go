@@ -2,6 +2,7 @@ package gstatemachines
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -46,30 +47,36 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	}
 	sm.curState = curState
 
-	err := sm.curState.Validate()
-	if err != nil {
-		return err
-	}
-	nextState, err := sm.curState.Transform(ctx, event, args)
-	if err != nil {
-		return err
-	}
-	if glogs.Log != nil {
-		if nextState == nil {
-			glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, sourceStateId)
-		} else {
-			glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sourceStateId, nextState.GetId())
+	for {
+		err := sm.curState.Validate()
+		if err != nil {
+			return err
 		}
-	}
-	if nextState == nil {
-		return nil
-	}
-	err = sm.curState.Exit(ctx, event, args...)
-	if err != nil {
+		nextState, err := sm.curState.Transform(ctx, event, args)
+		if err != nil {
+			return err
+		}
+		if glogs.Log != nil {
+			if nextState == nil {
+				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.GetId(), sm.curState.GetId())
+			} else {
+				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.GetId(), nextState.GetId())
+			}
+		}
+		if nextState == nil {
+			return nil
+		}
+		err = sm.curState.Exit(ctx, event, args...)
+		if err != nil {
+			return err
+		}
+		sm.curState = nextState
+		err = sm.curState.Entry(ctx, event, args...)
+		if errors.Is(err, ErrStateContinue) {
+			continue
+		}
 		return err
 	}
-	sm.curState = nextState
-	return sm.curState.Entry(ctx, event, args...)
 }
 
 func (sm *StateMachine) CurState() Stater {
