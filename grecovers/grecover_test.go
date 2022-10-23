@@ -1,4 +1,4 @@
-package grecover
+package grecovers
 
 import (
 	"context"
