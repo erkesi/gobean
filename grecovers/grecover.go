@@ -39,6 +39,19 @@ func RecoverFn(fn func() error) func() error {
 			}
 		}()
 		err = fn()
-		return err
+		return
+	}
+}
+
+func RecoverFnWithVG(fn func() (interface{}, error)) func() (interface{},error) {
+	return func() (val interface{}, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = gerrors.NewPanicError(r, string(debug.Stack()))
+				return
+			}
+		}()
+		val , err = fn()
+		return
 	}
 }
