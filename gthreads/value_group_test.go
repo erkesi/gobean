@@ -22,7 +22,7 @@ func TestGo(t *testing.T) {
 	}
 
 	t.Logf("vals:%v", res)
-	if len(res) != 100 {
+	if len(res) != 100 || res[0].(int) != 0 || res[len(res)-1].(int) != 99 {
 		t.Fatalf("len:%d", len(res))
 	}
 }
