@@ -2,7 +2,9 @@ package gthreads
 
 import (
 	"context"
+	"sort"
 	"sync"
+	"sync/atomic"
 )
 
 type ValueGroup struct {
@@ -11,7 +13,8 @@ type ValueGroup struct {
 	mu      sync.Mutex
 	errOnce sync.Once
 	err     error
-	res     []interface{}
+	vals    []*orderVal
+	order   int64
 }
 
 // WithContext returns a new Group and an associated Context derived from ctx.
@@ -31,7 +34,17 @@ func (g *ValueGroup) Wait() ([]interface{}, error) {
 	if g.cancel != nil {
 		g.cancel()
 	}
-	return g.res, g.err
+	if g.err != nil {
+		return nil, g.err
+	}
+	sort.Slice(g.vals, func(i, j int) bool {
+		return g.vals[i].order < g.vals[j].order
+	})
+	res := make([]interface{}, 0, len(g.vals))
+	for _, val := range g.vals {
+		res = append(res, val.val)
+	}
+	return res, nil
 }
 
 // Go calls the given function in a new goroutine.
@@ -39,6 +52,7 @@ func (g *ValueGroup) Wait() ([]interface{}, error) {
 // The first call to return a non-nil error cancels the group; its error will be
 // returned by Wait.
 func (g *ValueGroup) Go(f func() (interface{}, error)) {
+	order := atomic.AddInt64(&g.order, 1)
 	g.wg.Add(1)
 	go func() {
 		defer g.wg.Done()
@@ -52,7 +66,15 @@ func (g *ValueGroup) Go(f func() (interface{}, error)) {
 		} else {
 			g.mu.Lock()
 			defer g.mu.Unlock()
-			g.res = append(g.res, val)
+			g.vals = append(g.vals, &orderVal{
+				order: order,
+				val:   val,
+			})
 		}
 	}()
+}
+
+type orderVal struct {
+	order int64
+	val   interface{}
 }
