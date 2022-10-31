@@ -43,7 +43,7 @@ func RecoverFn(fn func() error) func() error {
 	}
 }
 
-func RecoverFnWithVG(fn func() (interface{}, error)) func() (interface{},error) {
+func RecoverVGFn(fn func() (interface{}, error)) func() (interface{}, error) {
 	return func() (val interface{}, err error) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -51,7 +51,7 @@ func RecoverFnWithVG(fn func() (interface{}, error)) func() (interface{},error) 
 				return
 			}
 		}()
-		val , err = fn()
+		val, err = fn()
 		return
 	}
 }
