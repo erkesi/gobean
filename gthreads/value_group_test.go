@@ -42,6 +42,7 @@ func TestGoForErr(t *testing.T) {
 
 	res, err := vg.Wait()
 	t.Logf("len vals:%v", len(res))
+	t.Logf("len err:%v", err)
 	if !strings.Contains(err.Error(), "panic") {
 		t.Fatal(err)
 	}

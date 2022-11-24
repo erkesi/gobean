@@ -12,5 +12,5 @@ func NewPanicError(msg interface{}, stack string) *PanicError {
 }
 
 func (pe *PanicError) Error() string {
-	return fmt.Sprintf("panic: %s, %s", pe.msg, pe.stack)
+	return fmt.Sprintf("panic, %s, %s", pe.msg, pe.stack)
 }
