@@ -53,3 +53,12 @@ func TestRecoverForErr(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 }
+
+func TestGoRecoverWithContext(t *testing.T) {
+	glogs.Init(&Log{T: t})
+	ctx := context.WithValue(context.TODO(), "k", "v")
+	GoRecoverWithContext(ctx, func(context.Context) {
+		panic(123)
+	})
+	time.Sleep(2 * time.Second)
+}
