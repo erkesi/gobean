@@ -8,15 +8,15 @@ import (
 	"github.com/erkesi/gobean/glogs"
 )
 
-func GoWithRecover(f func()) {
+func GoRecover(f func()) {
 	go Recover(f)()
 }
 
-func GoRecoverWithContext(ctx context.Context, f func(context.Context)) {
+func GoRecoverWithContext(ctx context.Context, f func()) {
 	go RecoverWithContext(ctx, f)()
 }
 
-func RecoverWithContext(ctx context.Context, f func(context.Context)) func() {
+func RecoverWithContext(ctx context.Context, f func()) func() {
 	return func() {
 		if glogs.Log != nil {
 			defer func() {
@@ -26,7 +26,7 @@ func RecoverWithContext(ctx context.Context, f func(context.Context)) func() {
 				}
 			}()
 		}
-		f(ctx)
+		f()
 	}
 }
 
@@ -44,7 +44,7 @@ func Recover(f func()) func() {
 	}
 }
 
-func RecoverForErr(f func() error) (err error) {
+func RecoverOfErr(f func() error) (err error) {
 	return RecoverFn(f)()
 }
 

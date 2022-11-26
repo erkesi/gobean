@@ -39,14 +39,14 @@ func TestRecover(t *testing.T) {
 func TestGoWithRecover(t *testing.T) {
 	glogs.Init(&Log{T: t})
 
-	GoWithRecover(func() {
+	GoRecover(func() {
 		panic(123)
 	})
 	time.Sleep(2 * time.Second)
 }
 
 func TestRecoverForErr(t *testing.T) {
-	err := RecoverForErr(func() error {
+	err := RecoverOfErr(func() error {
 		panic(123)
 	})
 	if !strings.Contains(err.Error(), "123") {
@@ -56,8 +56,8 @@ func TestRecoverForErr(t *testing.T) {
 
 func TestGoRecoverWithContext(t *testing.T) {
 	glogs.Init(&Log{T: t})
-	ctx := context.WithValue(context.TODO(), "k", "v")
-	GoRecoverWithContext(ctx, func(context.Context) {
+	ctx := context.WithValue(context.TODO(), "k1", "v2")
+	GoRecoverWithContext(ctx, func() {
 		panic(123)
 	})
 	time.Sleep(2 * time.Second)
