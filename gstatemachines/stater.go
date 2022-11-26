@@ -9,7 +9,7 @@ import (
 )
 
 type Stater interface {
-	BaseStater
+	BizStater
 
 	// Transform 流转
 	Transform(ctx context.Context, event Event, args ...interface{}) (Stater, error)
@@ -27,7 +27,7 @@ type Stater interface {
 	GetId() string
 }
 
-type BaseStater interface {
+type BizStater interface {
 	// Entry 进入状态时执行
 	Entry(ctx context.Context, event Event, args ...interface{}) error
 	// Exit 退出状态时执行
@@ -49,6 +49,9 @@ func (t *Transition) Satisfied(event Event) (bool, error) {
 }
 
 func testExpression(expression string, vars map[string]interface{}) (bool, error) {
+	if expression == "" {
+		return true, nil
+	}
 	eval := goval.NewEvaluator()
 	result, err := eval.Evaluate(expression, vars, nil)
 	if err != nil {
@@ -61,7 +64,7 @@ func testExpression(expression string, vars map[string]interface{}) (bool, error
 }
 
 type State struct {
-	BaseStater
+	BizStater
 	Id             string
 	Desc           string
 	Transitions    []*Transition

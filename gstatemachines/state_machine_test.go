@@ -38,7 +38,7 @@ func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
 func TestStateMachine_Generate(t *testing.T) {
 	glogs.Init(Log{})
 
-	id2State := make(map[string]BaseStater)
+	id2State := make(map[string]BizStater)
 	id2State["Start"] = &StartState{}
 	id2State["Task1"] = &Task1State{}
 	id2State["Reject"] = &RejectState{}
@@ -64,7 +64,7 @@ func TestStateMachine_Generate(t *testing.T) {
 	}
 
 	if stateMachine.curState.GetId() != "Reject" {
-		t.Errorf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "Reject")
+		t.Fatalf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "Reject")
 	}
 
 	err = stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "End"})
@@ -73,7 +73,7 @@ func TestStateMachine_Generate(t *testing.T) {
 	}
 
 	if stateMachine.curState.GetId() != "End" {
-		t.Errorf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "End")
+		t.Fatalf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "End")
 	}
 }
 
@@ -83,11 +83,11 @@ func TestStateMachine_Execute(t *testing.T) {
 			Name:    "flow",
 			Version: "1",
 			Id2State: map[string]Stater{"Task1": &State{
-				BaseStater: &Task1State{},
-				Id:         "Start",
-				Desc:       "Start",
-				IsStart:    false,
-				IsEnd:      false,
+				BizStater: &Task1State{},
+				Id:        "Start",
+				Desc:      "Start",
+				IsStart:   false,
+				IsEnd:     false,
 			}},
 		},
 	}

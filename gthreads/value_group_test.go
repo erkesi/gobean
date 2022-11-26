@@ -1,9 +1,10 @@
 package gthreads
 
 import (
-	"github.com/erkesi/gobean/grecovers"
 	"strings"
 	"testing"
+
+	"github.com/erkesi/gobean/grecovers"
 )
 
 func TestGo(t *testing.T) {
@@ -42,7 +43,7 @@ func TestGoForErr(t *testing.T) {
 
 	res, err := vg.Wait()
 	t.Logf("len vals:%v", len(res))
-	t.Logf("len err:%v", err)
+	// t.Logf("len err:%v", err)
 	if !strings.Contains(err.Error(), "panic") {
 		t.Fatal(err)
 	}

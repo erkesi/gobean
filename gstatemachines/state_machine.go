@@ -83,7 +83,7 @@ func (sm *StateMachine) CurState() Stater {
 	return sm.curState
 }
 
-func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*StateMachineDefinition, error) {
+func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*StateMachineDefinition, error) {
 	definition := &StateMachineDefinition{}
 	stateMachineDsl, err := toStateMachineDSL(dsl)
 	if err != nil {
@@ -107,7 +107,7 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 			}
 		}
 		definition.Id2State[key] = &State{
-			BaseStater:  baseState,
+			BizStater:   baseState,
 			Id:          key,
 			Desc:        desc,
 			Transitions: make([]*Transition, 0, 5),
@@ -131,7 +131,7 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BaseStater) (*
 				Condition: t.Condition,
 			}
 			if len(t.Actions) > 0 {
-				value := reflect.ValueOf(sourceState.(*State).BaseStater)
+				value := reflect.ValueOf(sourceState.(*State).BizStater)
 				for _, action := range strings.Split(t.Actions, ",") {
 					methodValue := value.MethodByName(action)
 					if !methodValue.IsValid() {
