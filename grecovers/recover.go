@@ -12,6 +12,24 @@ func GoWithRecover(f func()) {
 	go Recover(f)()
 }
 
+func GoRecoverWithContext(ctx context.Context, f func(context.Context)) {
+	go RecoverWithContext(ctx, f)()
+}
+
+func RecoverWithContext(ctx context.Context, f func(context.Context)) func() {
+	return func() {
+		if glogs.Log != nil {
+			defer func() {
+				if r := recover(); r != nil {
+					glogs.Log.Errorf(ctx, "%v",
+						gerrors.NewPanicError(r, string(debug.Stack())))
+				}
+			}()
+		}
+		f(ctx)
+	}
+}
+
 func Recover(f func()) func() {
 	return func() {
 		if glogs.Log != nil {
