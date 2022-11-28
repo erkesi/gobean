@@ -3,12 +3,11 @@ package grecovers
 import (
 	"context"
 	"fmt"
-	"strings"
-	"testing"
-	"time"
-
 	"github.com/erkesi/gobean/gerrors"
 	"github.com/erkesi/gobean/glogs"
+	"strings"
+	"sync"
+	"testing"
 )
 
 type Log struct {
@@ -38,11 +37,13 @@ func TestRecover(t *testing.T) {
 
 func TestGoWithRecover(t *testing.T) {
 	glogs.Init(&Log{T: t})
-
+	var wg sync.WaitGroup
+	wg.Add(1)
 	GoRecover(func() {
+		defer wg.Done()
 		panic(123)
 	})
-	time.Sleep(2 * time.Second)
+	wg.Wait()
 }
 
 func TestRecoverForErr(t *testing.T) {
@@ -57,8 +58,11 @@ func TestRecoverForErr(t *testing.T) {
 func TestGoRecoverWithContext(t *testing.T) {
 	glogs.Init(&Log{T: t})
 	ctx := context.WithValue(context.TODO(), "k1", "v2")
+	var wg sync.WaitGroup
+	wg.Add(1)
 	GoRecoverWithContext(ctx, func() {
+		defer wg.Done()
 		panic(123)
 	})
-	time.Sleep(2 * time.Second)
+	wg.Wait()
 }
