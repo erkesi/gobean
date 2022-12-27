@@ -24,16 +24,6 @@ const dls = `<?xml version="1.0" encoding="utf-8"?>
     </transitions>
 </stateMachine>`
 
-type Log struct {
-}
-
-func (l Log) Debugf(ctx context.Context, format string, v ...interface{}) {
-	fmt.Printf(format+"\n", v...)
-}
-
-func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
-	fmt.Printf(format+"\n", v...)
-}
 
 func TestStateMachine_Generate(t *testing.T) {
 	glogs.Init(Log{})
@@ -63,8 +53,8 @@ func TestStateMachine_Generate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if stateMachine.curState.GetId() != "Reject" {
-		t.Fatalf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "Reject")
+    if stateMachine.curState.Id != "Reject" {
+		t.Fatalf("wrong target: %s; expect: %s", stateMachine.curState.Id, "Reject")
 	}
 
 	err = stateMachine.Execute(context.TODO(), "Task1", map[string]interface{}{"operation": "End"})
@@ -72,8 +62,8 @@ func TestStateMachine_Generate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if stateMachine.curState.GetId() != "End" {
-		t.Fatalf("wrong target: %s; expect: %s", stateMachine.curState.GetId(), "End")
+	if stateMachine.curState.Id != "End" {
+		t.Fatalf("wrong target: %s; expect: %s", stateMachine.curState.Id, "End")
 	}
 }
 
@@ -82,12 +72,10 @@ func TestStateMachine_Execute(t *testing.T) {
 		Definition: &StateMachineDefinition{
 			Name:    "flow",
 			Version: "1",
-			Id2State: map[string]Stater{"Task1": &State{
+			Id2State: map[string]*State{"Task1": &State{
 				BizStater: &Task1State{},
 				Id:        "Start",
 				Desc:      "Start",
-				IsStart:   false,
-				IsEnd:     false,
 			}},
 		},
 	}
@@ -168,11 +156,14 @@ func (s *EndState) Exit(ctx context.Context, event Event, args ...interface{}) e
 	return nil
 }
 
-type Person struct {
-	Name string
+type Log struct {
 }
 
-func (p *Person) PrintName() {
-	fmt.Printf("1: %p", p)
-	fmt.Println("I am a person, ", p.Name)
+func (l Log) Debugf(ctx context.Context, format string, v ...interface{}) {
+    fmt.Printf(format+"\n", v...)
 }
+
+func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
+    fmt.Printf(format+"\n", v...)
+}
+

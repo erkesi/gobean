@@ -14,7 +14,7 @@ type StateMachineDefinition struct {
 	Name         string
 	Version      string
 	StartStateId string
-	Id2State     map[string]Stater
+	Id2State     map[string]*State
 	Transitions  []*Transition
 }
 
@@ -22,8 +22,8 @@ func (d StateMachineDefinition) PlainUML() string {
 	plainUML := "@startuml\n\n"
 	for _, transition := range d.Transitions {
 		if transition.Target != nil {
-			plainUML += fmt.Sprintf("%s --> %s : %s\n", transition.Source.GetId(),
-				transition.Target.GetId(), transition.Condition)
+			plainUML += fmt.Sprintf("%s --> %s : %s\n", transition.Source.Id,
+				transition.Target.Id, transition.Condition)
 		}
 	}
 	plainUML += "\n@enduml"
@@ -32,7 +32,7 @@ func (d StateMachineDefinition) PlainUML() string {
 
 type StateMachine struct {
 	Definition *StateMachineDefinition
-	curState   Stater
+	curState   *State
 }
 
 func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
@@ -54,19 +54,25 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 		}
 		if glogs.Log != nil {
 			if nextState == nil {
-				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.GetId(), sm.curState.GetId())
+                glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.Id, sm.curState.Id)
 			} else {
-				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.GetId(), nextState.GetId())
+				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.Id, nextState.Id)
 			}
 		}
 		if nextState == nil {
 			return nil
 		}
+        if glogs.Log != nil {
+            glogs.Log.Debugf(ctx, "gstatemachines: executing, exit sourceState(%v)", sm.curState)
+        }
 		err = sm.curState.Exit(ctx, event, args...)
 		if err != nil {
 			return err
 		}
 		sm.curState = nextState
+        if glogs.Log != nil {
+            glogs.Log.Debugf(ctx, "gstatemachines: executing, entry nextState(%v)", sm.curState)
+        }
 		err = sm.curState.Entry(ctx, event, args...)
 		if errors.Is(err, ErrStateSkip) {
 			continue
@@ -75,7 +81,7 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	}
 }
 
-func (sm *StateMachine) CurState() Stater {
+func (sm *StateMachine) CurState() *State {
 	return sm.curState
 }
 
@@ -86,7 +92,7 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*S
 		return nil, err
 	}
 	// state映射
-	definition.Id2State = make(map[string]Stater)
+	definition.Id2State = make(map[string]*State)
 	for key, baseState := range id2BaseState {
 		desc := key
 		isStart := false
@@ -107,8 +113,8 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*S
 			Id:          key,
 			Desc:        desc,
 			Transitions: make([]*Transition, 0, 5),
-			IsStart:     isStart,
-			IsEnd:       isEnd,
+			isStart:     isStart,
+			isEnd:       isEnd,
 		}
 	}
 
@@ -127,7 +133,7 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*S
 				Condition: t.Condition,
 			}
 			if len(t.Actions) > 0 {
-				value := reflect.ValueOf(sourceState.(*State).BizStater)
+				value := reflect.ValueOf(sourceState.BizStater)
 				for _, action := range strings.Split(t.Actions, ",") {
 					methodValue := value.MethodByName(action)
 					if !methodValue.IsValid() {
@@ -139,9 +145,9 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*S
 			if targetState, ok := definition.Id2State[t.TargetId]; ok {
 				transition.Target = targetState
 			}
-			transitions := sourceState.GetTransitions()
+			transitions := sourceState.getTransitions()
 			transitions = append(transitions, transition)
-			sourceState.SetTransitions(transitions)
+			sourceState.setTransitions(transitions)
 		} else {
 			return nil, ErrStateEmptySource
 		}
@@ -150,13 +156,13 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*S
 	return definition, nil
 }
 
-func recTransitions(stateId string, id2State map[string]Stater) []*Transition {
+func recTransitions(stateId string, id2State map[string]*State) []*Transition {
 	var transitions []*Transition
 	var targetStateIds []string
-	for _, transition := range id2State[stateId].GetTransitions() {
+	for _, transition := range id2State[stateId].getTransitions() {
 		transitions = append(transitions, transition)
 		if transition.Target != nil {
-			targetStateIds = append(targetStateIds, transition.Target.GetId())
+			targetStateIds = append(targetStateIds, transition.Target.Id)
 		}
 	}
 	for _, targetStateId := range targetStateIds {

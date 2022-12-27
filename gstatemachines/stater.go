@@ -8,22 +8,6 @@ import (
 	"github.com/maja42/goval"
 )
 
-type Stater interface {
-	BizStater
-
-	// Transform 流转
-	Transform(ctx context.Context, event Event, args ...interface{}) (Stater, error)
-
-	// GetTransitions 获取转换列表
-	GetTransitions() []*Transition
-
-	// SetTransitions 更新转换列表
-	SetTransitions([]*Transition)
-
-	// GetId 获取id
-	GetId() string
-}
-
 type BizStater interface {
 	// Entry 进入状态时执行
 	Entry(ctx context.Context, event Event, args ...interface{}) error
@@ -32,9 +16,9 @@ type BizStater interface {
 }
 
 type Transition struct {
-	Source    Stater
+	Source    *State
 	Condition string
-	Target    Stater
+	Target    *State
 	Actions   []reflect.Value
 }
 
@@ -65,27 +49,23 @@ type State struct {
 	Id             string
 	Desc           string
 	Transitions    []*Transition
-	IsStart, IsEnd bool
+	isStart, isEnd bool
 }
 
 func (s *State) String() string {
 	return fmt.Sprintf("[State] Id:%s, Desc:%s, IsStart:%t, IsEnd:%t",
-		s.Id, s.Desc, s.IsStart, s.IsEnd)
+		s.Id, s.Desc, s.isStart, s.isEnd)
 }
 
-func (s *State) GetId() string {
-	return s.Id
-}
-
-func (s *State) GetTransitions() []*Transition {
+func (s *State) getTransitions() []*Transition {
 	return s.Transitions
 }
 
-func (s *State) SetTransitions(ts []*Transition) {
+func (s *State) setTransitions(ts []*Transition) {
 	s.Transitions = ts
 }
 
-func (s *State) Transform(ctx context.Context, event Event, args ...interface{}) (Stater, error) {
+func (s *State) Transform(ctx context.Context, event Event, args ...interface{}) (*State, error) {
 	for _, transition := range s.Transitions {
 		ok, err := transition.Satisfied(event)
 		if err != nil {
