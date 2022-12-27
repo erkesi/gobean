@@ -48,10 +48,6 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 	sm.curState = curState
 
 	for {
-		err := sm.curState.Validate()
-		if err != nil {
-			return err
-		}
 		nextState, err := sm.curState.Transform(ctx, event, args)
 		if err != nil {
 			return err
@@ -72,7 +68,7 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 		}
 		sm.curState = nextState
 		err = sm.curState.Entry(ctx, event, args...)
-		if errors.Is(err, ErrStateContinue) {
+		if errors.Is(err, ErrStateSkip) {
 			continue
 		}
 		return err

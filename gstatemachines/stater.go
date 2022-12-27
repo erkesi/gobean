@@ -14,9 +14,6 @@ type Stater interface {
 	// Transform 流转
 	Transform(ctx context.Context, event Event, args ...interface{}) (Stater, error)
 
-	// Validate 校验
-	Validate() error
-
 	// GetTransitions 获取转换列表
 	GetTransitions() []*Transition
 
@@ -120,11 +117,4 @@ func (s *State) Transform(ctx context.Context, event Event, args ...interface{})
 		return transition.Target, nil
 	}
 	return nil, ErrTransitionAllNotSatisfied
-}
-
-func (s *State) Validate() error {
-	if s.IsEnd {
-		return ErrStateInvalid
-	}
-	return nil
 }
