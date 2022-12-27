@@ -21,10 +21,16 @@ type StateMachineDefinition struct {
 func (d StateMachineDefinition) PlainUML() string {
 	plainUML := "@startuml\n\n"
 	for _, transition := range d.Transitions {
+		target := transition.Source
 		if transition.Target != nil {
-			plainUML += fmt.Sprintf("%s --> %s : %s\n", transition.Source.Id,
-				transition.Target.Id, transition.Condition)
+			target = transition.Target
 		}
+		condition := transition.Condition
+		if len(transition.ActionsRaw) > 0 {
+			condition += ",actions(" + transition.ActionsRaw + ")"
+		}
+		plainUML += fmt.Sprintf("%s --> %s : %s\n", transition.Source.Id,
+			target.Id, condition)
 	}
 	plainUML += "\n@enduml"
 	return plainUML
@@ -54,7 +60,7 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 		}
 		if glogs.Log != nil {
 			if nextState == nil {
-                glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.Id, sm.curState.Id)
+				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.Id, sm.curState.Id)
 			} else {
 				glogs.Log.Debugf(ctx, "gstatemachines: executing, sourceStateId is %s, targetStateId is %s", sm.curState.Id, nextState.Id)
 			}
@@ -62,17 +68,17 @@ func (sm *StateMachine) Execute(ctx context.Context, sourceStateId string,
 		if nextState == nil {
 			return nil
 		}
-        if glogs.Log != nil {
-            glogs.Log.Debugf(ctx, "gstatemachines: executing, exit sourceState(%v)", sm.curState)
-        }
+		if glogs.Log != nil {
+			glogs.Log.Debugf(ctx, "gstatemachines: executing, exit sourceState(%v)", sm.curState)
+		}
 		err = sm.curState.Exit(ctx, event, args...)
 		if err != nil {
 			return err
 		}
 		sm.curState = nextState
-        if glogs.Log != nil {
-            glogs.Log.Debugf(ctx, "gstatemachines: executing, entry nextState(%v)", sm.curState)
-        }
+		if glogs.Log != nil {
+			glogs.Log.Debugf(ctx, "gstatemachines: executing, entry nextState(%v)", sm.curState)
+		}
 		err = sm.curState.Entry(ctx, event, args...)
 		if errors.Is(err, ErrStateSkip) {
 			continue
@@ -129,8 +135,9 @@ func ToStateMachineDefinition(dsl string, id2BaseState map[string]BizStater) (*S
 				return nil, ErrStateEmptyTarget
 			}
 			transition := &Transition{
-				Source:    sourceState,
-				Condition: t.Condition,
+				Source:     sourceState,
+				Condition:  t.Condition,
+				ActionsRaw: t.Actions,
 			}
 			if len(t.Actions) > 0 {
 				value := reflect.ValueOf(sourceState.BizStater)

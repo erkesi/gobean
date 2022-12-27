@@ -19,7 +19,8 @@ type Transition struct {
 	Source    *State
 	Condition string
 	Target    *State
-	Actions   []reflect.Value
+    ActionsRaw string
+    Actions   []reflect.Value
 }
 
 // Satisfied
@@ -29,11 +30,12 @@ func (t *Transition) Satisfied(event Event) (bool, error) {
 	return testExpression(t.Condition, event)
 }
 
+var eval = goval.NewEvaluator()
+
 func testExpression(expression string, vars map[string]interface{}) (bool, error) {
 	if expression == "" {
 		return true, nil
 	}
-	eval := goval.NewEvaluator()
 	result, err := eval.Evaluate(expression, vars, nil)
 	if err != nil {
 		return false, fmt.Errorf(conditionExpressionInvalidErrFmt, expression, err)
