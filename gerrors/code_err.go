@@ -28,6 +28,8 @@ func NewCodeErrorWarp(code int, msg string, err error) *CodeError {
 	return &CodeError{code: code, msg: msg, err: err}
 }
 
+func (ce *CodeError) Unwrap() error { return ce.Err() }
+
 func (ce *CodeError) Code() int {
 	return ce.code
 }
