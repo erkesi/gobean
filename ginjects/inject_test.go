@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/erkesi/gobean/glogs"
 	"github.com/facebookgo/ensure"
+	"reflect"
 	"testing"
 )
 
 type A struct {
+	Name string
 }
 
 func (a *A) Init() {
@@ -52,15 +54,34 @@ func (c *C) Close() {
 	fmt.Println("C.close")
 }
 
-type Log struct {
-}
+func Test_1(t *testing.T) {
+	// Golang program to illustrate
+	// reflect.New() Function
+	type Geek struct {
+		A int `tag1:"First Tag" tag2:"Second Tag"`
+		B string
+	}
 
-func (l Log) Debugf(ctx context.Context, format string, v ...interface{}) {
-	fmt.Printf(format+"\n", v...)
-}
+	greeting := "GeeksforGeeks"
+	f := Geek{A: 10, B: "Number"}
 
-func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
-	fmt.Printf(format+"\n", v...)
+	gVal := reflect.ValueOf(greeting)
+
+	fmt.Println(gVal.Interface())
+
+	gpVal := reflect.ValueOf(&greeting)
+	gpVal.Elem().SetString("Articles")
+	fmt.Println(greeting)
+
+	fType := reflect.TypeOf(f)
+	fVal := reflect.New(fType)
+	fmt.Printf("%p\n", fVal.Interface())
+	fVal.Elem().Field(0).SetInt(20)
+	fVal.Elem().Field(1).SetString("Number")
+	f2 := fVal.Elem().Interface().(Geek)
+	fmt.Printf("%+v, %d, %s\n", f2, f2.A, f2.B)
+	fVal = reflect.New(fType)
+	fmt.Printf("%p\n", fVal.Interface())
 }
 
 func Test_Inject(t *testing.T) {
@@ -94,7 +115,10 @@ func Test_Inject(t *testing.T) {
 		t.Fatal("err")
 		return
 	}
-
+	if c1.A1 == c1.A2 {
+		t.Fatalf("c1.A1(%p) == c1.A2(%p)", c1.A1, c1.A2)
+		return
+	}
 	// obtain by interface type
 	var err error
 	err = ObtainByType(&err).(error)
@@ -112,4 +136,15 @@ func Test_Inject(t *testing.T) {
 	}
 
 	Close()
+}
+
+type Log struct {
+}
+
+func (l Log) Debugf(ctx context.Context, format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
+}
+
+func (l Log) Errorf(ctx context.Context, format string, v ...interface{}) {
+	fmt.Printf(format+"\n", v...)
 }
