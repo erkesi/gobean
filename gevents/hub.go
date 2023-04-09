@@ -9,22 +9,22 @@ import (
 	"github.com/erkesi/gobean/ginjects"
 )
 
-type registeOpt struct {
+type registerOptions struct {
 	priority int
 }
 
-type RegisteOptFunc func(opt *registeOpt)
+type RegisterOption func(opt *registerOptions)
 
-// RegisteWithPriority
+// WithRegisterPriority
 // priority 越大越先执行
-func RegisteWithPriority(priority int) RegisteOptFunc {
-	return func(opt *registeOpt) {
+func WithRegisterPriority(priority int) RegisterOption {
+	return func(opt *registerOptions) {
 		opt.priority = priority
 	}
 }
 
-func Register(executor Executor, opts ...RegisteOptFunc) {
-	opt := &registeOpt{}
+func Register(executor Executor, opts ...RegisterOption) {
+	opt := &registerOptions{}
 	for _, f := range opts {
 		f(opt)
 	}
@@ -34,7 +34,7 @@ func Register(executor Executor, opts ...RegisteOptFunc) {
 }
 
 func SetDefaultExecutor(executor Executor) {
-	ginjects.ProvideByValue(executor, ginjects.ProvideWithPriorityTop1())
+	ginjects.ProvideByValue(executor, ginjects.WithProvidePriorityTop1())
 	hub.defaultExecutor = executor
 }
 
@@ -42,7 +42,7 @@ func Clear() {
 	hub.clear()
 }
 
-func execute(ctx context.Context, event interface{}, o *Option) error {
+func execute(ctx context.Context, event interface{}, o *pubOptions) error {
 	eventType := reflect.TypeOf(event)
 	if eventType.Kind() == reflect.Ptr {
 		eventType = eventType.Elem()
@@ -79,7 +79,7 @@ func (h *_hub) register(ext *executorExt) {
 	if h.executes == nil {
 		h.executes = map[reflect.Type][]*executorExt{}
 	}
-	ginjects.ProvideByValue(ext.executor, ginjects.ProvideWithPriorityTop1())
+	ginjects.ProvideByValue(ext.executor, ginjects.WithProvidePriorityTop1())
 	eventTypeSet := map[reflect.Type]bool{}
 	for _, eventType := range ext.executor.Types() {
 		if eventType.Kind() == reflect.Ptr {

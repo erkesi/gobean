@@ -87,9 +87,9 @@ func Test_1(t *testing.T) {
 func Test_Inject(t *testing.T) {
 	glogs.Init(Log{})
 
-	ProvideByValue(&A{}, ProvideWithPriority(99))
-	ProvideByValue(&B{name: "unName"}, ProvideWithPriority(100))
-	ProvideByName("b", &B{name: "named"}, ProvideWithPriority(101))
+	ProvideByValue(&A{}, WithProvidePriority(99))
+	ProvideByValue(&B{name: "unName"}, WithProvidePriority(100))
+	ProvideByName("b", &B{name: "named"}, WithProvidePriority(101))
 	errObj := errors.New("err")
 	ProvideByValue(errObj)
 

@@ -35,7 +35,7 @@ func (m *MockPublisher) EXPECT() *MockPublisherMockRecorder {
 }
 
 // Publish mocks base method.
-func (m *MockPublisher) Publish(ctx context.Context, event interface{}, opts ...PublishOpt) error {
+func (m *MockPublisher) Publish(ctx context.Context, event interface{}, opts ...PublishOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, event}
 	for _, a := range opts {

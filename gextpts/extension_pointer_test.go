@@ -49,9 +49,9 @@ type DataValidateExtPt interface {
 }
 
 func TestInterfaceFunction2(t *testing.T) {
-	Register(&UserExtensionPointer1{}, ExtPtWithPriority(99))
-	Register(&UserExtensionPointer2{}, ExtPtWithPriority(98))
-	Register(&UserExtensionPointer0{}, ExtPtWithPriority(100))
+	Register(&UserExtensionPointer1{}, WithExtPtPriority(99))
+	Register(&UserExtensionPointer2{}, WithExtPtPriority(98))
+	Register(&UserExtensionPointer0{}, WithExtPtPriority(100))
 	ctx := context.WithValue(context.Background(), "tmp", "tmp_val")
 	_, b, err := ExecuteWithErr(ctx, DataValidateExtPt.Validate, &User{Id: 1})
 	fmt.Println(b.(bool))

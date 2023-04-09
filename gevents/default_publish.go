@@ -9,8 +9,8 @@ import (
 type DefaultPublisher struct {
 }
 
-func (ep *DefaultPublisher) Publish(ctx context.Context, event interface{}, 
-	opts ...PublishOpt) error {
+func (ep *DefaultPublisher) Publish(ctx context.Context, event interface{},
+	opts ...PublishOption) error {
 	var err error
 	defer func() {
 		r := recover()
@@ -20,7 +20,7 @@ func (ep *DefaultPublisher) Publish(ctx context.Context, event interface{},
 			return
 		}
 	}()
-	o := &Option{}
+	o := &pubOptions{}
 	for _, opt := range opts {
 		opt(o)
 	}

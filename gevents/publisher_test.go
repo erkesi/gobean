@@ -66,15 +66,15 @@ func (h *UserModifyEventHandler1) Types() []reflect.Type {
 }
 
 func TestEventPublish(t *testing.T) {
-	Register(&UserModifyEventHandler{T: t}, RegisteWithPriority(100))
-	Register(&UserModifyEventHandler1{T: t}, RegisteWithPriority(101))
+	Register(&UserModifyEventHandler{T: t}, WithRegisterPriority(100))
+	Register(&UserModifyEventHandler1{T: t}, WithRegisterPriority(101))
 	SetDefaultExecutor(&DefaultEventHandler{T: t})
 	publisher := &DefaultPublisher{}
 	err := publisher.Publish(context.Background(), &UserModifyEvent{
 		Id:    1,
 		Name:  "zhaoche",
 		State: "add",
-	}, MustHaveSubscriber())
+	}, WithMustHaveSubscriber())
 	if err != nil {
 		t.Fatal(err)
 		return

@@ -4,18 +4,18 @@ import (
 	"context"
 )
 
-type PublishOpt func(*Option)
+type PublishOption func(*pubOptions)
 
-func MustHaveSubscriber() PublishOpt {
-	return func(option *Option) {
+func WithMustHaveSubscriber() PublishOption {
+	return func(option *pubOptions) {
 		option.mustHaveSubscriber = true
 	}
 }
 
-type Option struct {
+type pubOptions struct {
 	mustHaveSubscriber bool
 }
 
 type Publisher interface {
-	Publish(ctx context.Context, event interface{}, opts ...PublishOpt) error
+	Publish(ctx context.Context, event interface{}, opts ...PublishOption) error
 }

@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-func Register(et ExtensionPointer, opts ...ExtPtOptFunc) {
+func Register(et ExtensionPointer, opts ...ExtPtOption) {
 	hub.register(et, opts...)
 }
 
@@ -20,22 +20,22 @@ type extPt struct {
 	index, priority int
 }
 
-type ExtPtOptFunc func(opt *extPtOpt)
+type ExtPtOption func(opt *extPtOptions)
 
-// ExtPtWithPriority
+// WithExtPtPriority
 // priority 越大越先初始化（在按照依赖顺序的前提下）
-func ExtPtWithPriority(priority int) ExtPtOptFunc {
-	return func(opt *extPtOpt) {
+func WithExtPtPriority(priority int) ExtPtOption {
+	return func(opt *extPtOptions) {
 		opt.priority = priority
 	}
 }
 
-type extPtOpt struct {
+type extPtOptions struct {
 	priority int
 }
 
-func extPtOptsExec(opts ...ExtPtOptFunc) *extPtOpt {
-	opt := &extPtOpt{}
+func apply(opts ...ExtPtOption) *extPtOptions {
+	opt := &extPtOptions{}
 	for _, fn := range opts {
 		fn(opt)
 	}
@@ -49,14 +49,14 @@ type _hub struct {
 	index   int
 }
 
-func (h *_hub) register(et ExtensionPointer, opts ...ExtPtOptFunc) {
+func (h *_hub) register(et ExtensionPointer, opts ...ExtPtOption) {
 	t := reflect.TypeOf(et)
 	if h.typeSet[reflect.TypeOf(et)] {
 		panic(fmt.Sprintf("gextpts: ExtensionPointer type(%s) exist", t.String()))
 	}
 	h.index = h.index + 1
-	opt := extPtOptsExec(opts...)
-	ginjects.ProvideByValue(et, ginjects.ProvideWithPriority(opt.priority))
+	opt := apply(opts...)
+	ginjects.ProvideByValue(et, ginjects.WithProvidePriority(opt.priority))
 	h.typeSet[reflect.TypeOf(et)] = true
 	h.extPts = append(h.extPts, &extPt{
 		t:        t,
