@@ -1,7 +1,7 @@
 package gstream
 
 type memorySink[T any] struct {
-	StateConf
+	FlowState
 	in     chan interface{}
 	result []T
 }

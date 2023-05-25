@@ -14,7 +14,7 @@ type ReduceFunction[T any] func(context.Context, T, T) T
 //
 // out -- 1 -- 2' --- 3' - 4' ----- 5' -
 type Reduce[T any] struct {
-	StateConf
+	FlowState
 	reduceFunction ReduceFunction[T]
 	in             chan interface{}
 	out            chan interface{}

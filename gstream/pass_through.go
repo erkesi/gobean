@@ -6,7 +6,7 @@ package gstream
 //
 // out -- 1 -- 2 ---- 3 -- 4 ------ 5 --
 type passThrough struct {
-	StateConf
+	FlowState
 	in  chan interface{}
 	out chan interface{}
 }

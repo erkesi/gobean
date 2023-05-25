@@ -13,7 +13,7 @@ type FlatMapFunction[T, R any] func(context.Context, T) []R
 //
 // out -- 1' - 2' -------- 4'- 4" - 5' -
 type FlatMap[T, R any] struct {
-	StateConf
+	FlowState
 	flatMapFunction FlatMapFunction[T, R]
 	in              chan interface{}
 	out             chan interface{}

@@ -15,7 +15,7 @@ type FilterPredicate[T any] func(context.Context, T) bool
 //
 // out -- 1 -- 2 ------------------ 5 --
 type Filter[T any] struct {
-	StateConf
+	FlowState
 	filterPredicate FilterPredicate[T]
 	in              chan interface{}
 	out             chan interface{}

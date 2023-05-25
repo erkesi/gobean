@@ -13,7 +13,7 @@ type MapFunction[T, R any] func(context.Context, T) R
 //
 // out -- 1' - 2' --- 3' - 4' ----- 5' -
 type Map[T, R any] struct {
-	StateConf
+	FlowState
 	mapFunction MapFunction[T, R]
 	in          chan interface{}
 	out         chan interface{}

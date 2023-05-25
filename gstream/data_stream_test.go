@@ -18,7 +18,7 @@ func TestNewDataSourceOf(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, i := range sink.Result() {
-		t.Log(i + 1)
+		t.Log(i + 0)
 	}
 }
 
@@ -62,7 +62,7 @@ func (a *A) messageToStrs(ctx context.Context, item *message) []string {
 }
 
 type tickerOutlet struct {
-	StateConf
+	FlowState
 	out <-chan interface{}
 }
 
@@ -82,7 +82,7 @@ func (to *tickerOutlet) init() {
 		i := 0
 		for range oc {
 			i++
-			if to.State().HasErr() {
+			if to.HasStateErr() {
 				nc <- &message{content: "err end"}
 				close(nc)
 				return
@@ -99,7 +99,7 @@ func (to *tickerOutlet) init() {
 }
 
 type stdoutSink struct {
-	StateConf
+	FlowState
 	in    chan interface{}
 	i     int
 	count int64
@@ -121,7 +121,7 @@ func (stdout *stdoutSink) init() {
 			fmt.Printf("sink%d-%s\n", stdout.i, elem)
 			atomic.AddInt64(&stdout.count, 1)
 			if elem == "3" {
-				stdout.State().SetErr(fmt.Errorf("test err"))
+				stdout.SetStateErr(fmt.Errorf("test err"))
 				continue
 			}
 		}

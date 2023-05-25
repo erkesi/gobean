@@ -7,7 +7,7 @@ import (
 )
 
 type dataSource struct {
-	StateConf
+	FlowState
 	in <-chan interface{}
 }
 
@@ -15,7 +15,7 @@ func NewDataStream(ctx context.Context, out Outlet) Source {
 	state := newState(ctx)
 	out.setState(state)
 	return &dataSource{
-		StateConf: StateConf{transState: state},
+		FlowState: FlowState{_state: state},
 		in:        out.Out(),
 	}
 }
@@ -23,7 +23,7 @@ func NewDataStream(ctx context.Context, out Outlet) Source {
 func NewDataStreamOf(ctx context.Context, data interface{}) Source {
 	state := newState(ctx)
 	return &dataSource{
-		StateConf: StateConf{transState: state},
+		FlowState: FlowState{_state: state},
 		in:        interface2Chan(data),
 	}
 }

@@ -35,6 +35,7 @@ type Stater interface {
 	State() *state
 	Context() context.Context
 	setState(state *state)
+	SetStateErr(err error)
 }
 
 // Sink represents a set of stream processing steps that has one open input.
@@ -49,29 +50,37 @@ type MemorySink[T any] interface {
 	Result() []T
 }
 
-type StateConf struct {
-	transState *state
+type FlowState struct {
+	_state *state
 }
 
-func (bs *StateConf) State() *state {
-	return bs.transState
+func (bs *FlowState) State() *state {
+	return bs._state
 }
 
-func (bs *StateConf) Context() context.Context {
-	return bs.transState.ctx
+func (bs *FlowState) Context() context.Context {
+	return bs._state.ctx
 }
 
-func (bs *StateConf) Done() {
-	bs.transState.wg.Done()
+func (bs *FlowState) Done() {
+	bs._state.wg.Done()
 }
 
-func (bs *StateConf) setState(s *state) {
-	bs.transState = s
+func (bs *FlowState) setState(s *state) {
+	bs._state = s
 }
 
-func (bs *StateConf) SetSinkState(transState *state) {
+func (bs *FlowState) SetStateErr(err error) {
+	bs._state.setErr(err)
+}
+
+func (bs *FlowState) HasStateErr() bool {
+	return bs._state.hasErr()
+}
+
+func (bs *FlowState) SetSinkState(transState *state) {
 	transState.wg.Add(1)
-	bs.transState = transState
+	bs._state = transState
 }
 
 func newState(ctx context.Context) *state {
@@ -81,7 +90,7 @@ func newState(ctx context.Context) *state {
 }
 
 type state struct {
-	sync.RWMutex
+	rw  sync.RWMutex
 	ctx context.Context
 	wg  sync.WaitGroup
 	err error
@@ -92,9 +101,9 @@ func (s *state) Wait() error {
 	return s.error()
 }
 
-func (s *state) SetErr(err error) {
-	s.Lock()
-	defer s.Unlock()
+func (s *state) setErr(err error) {
+	s.rw.Lock()
+	defer s.rw.Unlock()
 	if s.err != nil {
 		return
 	}
@@ -102,11 +111,11 @@ func (s *state) SetErr(err error) {
 }
 
 func (s *state) error() error {
-	s.RLock()
-	defer s.RUnlock()
+	s.rw.RLock()
+	defer s.rw.RUnlock()
 	return s.err
 }
 
-func (s *state) HasErr() bool {
+func (s *state) hasErr() bool {
 	return s.error() != nil
 }
