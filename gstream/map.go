@@ -1,4 +1,4 @@
-package gdataflow
+package gstream
 
 import "context"
 
@@ -13,15 +13,15 @@ type MapFunction[T, R any] func(context.Context, T) R
 //
 // out -- 1' - 2' --- 3' - 4' ----- 5' -
 type Map[T, R any] struct {
-	TransStateConf
+	StateConf
 	mapFunction MapFunction[T, R]
 	in          chan interface{}
 	out         chan interface{}
 	parallelism uint
 }
 
-// Verify Map satisfies the Flow interface.
-var _ Flow = (*Map[any, any])(nil)
+// Verify Map satisfies the Transfer interface.
+var _ Transfer = (*Map[any, any])(nil)
 
 // NewMap returns a new Map instance.
 //
@@ -39,15 +39,15 @@ func NewMap[T, R any](mapFunction MapFunction[T, R], parallelism uint) *Map[T, R
 }
 
 // Via streams data through the given flow
-func (m *Map[T, R]) Via(flow Flow) Flow {
-	flow.SetTransState(m.TransState())
+func (m *Map[T, R]) Via(flow Transfer) Transfer {
+	flow.setState(m.State())
 	go m.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (m *Map[T, R]) To(sink Sink) {
-	sink.SetSinkTransState(m.TransState())
+	sink.SetSinkState(m.State())
 	go m.transmit(sink)
 }
 

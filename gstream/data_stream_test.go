@@ -1,4 +1,4 @@
-package gdataflow
+package gstream
 
 import (
 	"context"
@@ -9,34 +9,48 @@ import (
 	"time"
 )
 
+func TestNewDataSourceOf(t *testing.T) {
+	dataStream := NewDataStreamOf(context.TODO(), []int{1, 2, 3})
+	sink := NewMemorySink[int]()
+	dataStream.Via(NewFilter(func(ctx context.Context, i int) bool { return i < 2 }, 1)).To(sink)
+	err := dataStream.State().Wait()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, i := range sink.Result() {
+		t.Log(i + 1)
+	}
+}
+
 func TestNewDataSource(t *testing.T) {
 	output := &tickerOutlet{}
 	output.init()
 
-	source := NewDataSource(context.TODO(), output)
+	dataStream := NewDataStream(context.TODO(), output)
 
 	a := &A{}
-	flows := FanOut(source.Via(NewFlatMap(a.messageToStrs, 1)), 2)
+	transfers := FanOut(dataStream.Via(NewFlatMap(a.messageToStrs, 1)), 2)
 	var sinks []*stdoutSink
-	for i, flow := range flows {
+	for i, transfer := range transfers {
 		if i == 0 {
-			flow = flow.Via(NewFlatMap(func(ctx context.Context, s string) []string { return []string{s + "f"} }, 1))
+			transfer = transfer.Via(NewFlatMap(func(ctx context.Context, s string) []string { return []string{s + "f"} }, 1))
 		}
 		sink := newStdoutSink(i)
 		sinks = append(sinks, sink)
-		flow.To(sink)
+		transfer.To(sink)
 	}
 
-	source.TransState().Wait()
+	err := dataStream.State().Wait()
+	if err.Error() != "test err" {
+		t.Fatal(dataStream.State().error())
+	}
 
 	for _, sink := range sinks {
 		if atomic.LoadInt64(&sink.count) != 4 {
 			t.Fatal(atomic.LoadInt64(&sink.count))
 		}
 	}
-	if source.TransState().Err().Error() != "test err" {
-		t.Fatal(source.TransState().Err())
-	}
+
 }
 
 type A struct {
@@ -48,7 +62,7 @@ func (a *A) messageToStrs(ctx context.Context, item *message) []string {
 }
 
 type tickerOutlet struct {
-	TransStateConf
+	StateConf
 	out <-chan interface{}
 }
 
@@ -68,8 +82,8 @@ func (to *tickerOutlet) init() {
 		i := 0
 		for range oc {
 			i++
-			if to.TransState().IsErr() {
-				// nc <- &message{content: "err end"}
+			if to.State().HasErr() {
+				nc <- &message{content: "err end"}
 				close(nc)
 				return
 			}
@@ -85,7 +99,7 @@ func (to *tickerOutlet) init() {
 }
 
 type stdoutSink struct {
-	TransStateConf
+	StateConf
 	in    chan interface{}
 	i     int
 	count int64
@@ -107,7 +121,7 @@ func (stdout *stdoutSink) init() {
 			fmt.Printf("sink%d-%s\n", stdout.i, elem)
 			atomic.AddInt64(&stdout.count, 1)
 			if elem == "3" {
-				stdout.TransState().SetErr(fmt.Errorf("test err"))
+				stdout.State().SetErr(fmt.Errorf("test err"))
 				continue
 			}
 		}

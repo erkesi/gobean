@@ -1,4 +1,4 @@
-package gdataflow
+package gstream
 
 import "context"
 
@@ -14,15 +14,15 @@ type ReduceFunction[T any] func(context.Context, T, T) T
 //
 // out -- 1 -- 2' --- 3' - 4' ----- 5' -
 type Reduce[T any] struct {
-	TransStateConf
+	StateConf
 	reduceFunction ReduceFunction[T]
 	in             chan interface{}
 	out            chan interface{}
 	lastReduced    interface{}
 }
 
-// Verify Reduce satisfies the Flow interface.
-var _ Flow = (*Reduce[any])(nil)
+// Verify Reduce satisfies the Transfer interface.
+var _ Transfer = (*Reduce[any])(nil)
 
 // NewReduce returns a new Reduce instance.
 //
@@ -38,15 +38,15 @@ func NewReduce[T any](reduceFunction ReduceFunction[T]) *Reduce[T] {
 }
 
 // Via streams data through the given flow
-func (r *Reduce[T]) Via(flow Flow) Flow {
-	flow.SetTransState(r.TransState())
+func (r *Reduce[T]) Via(flow Transfer) Transfer {
+	flow.setState(r.State())
 	go r.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (r *Reduce[T]) To(sink Sink) {
-	sink.SetSinkTransState(r.TransState())
+	sink.SetSinkState(r.State())
 	go r.transmit(sink)
 }
 

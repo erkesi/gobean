@@ -1,4 +1,4 @@
-package gdataflow
+package gstream
 
 import (
 	"context"
@@ -20,73 +20,79 @@ type Outlet interface {
 // Source represents a set of stream processing steps that has one open output.
 type Source interface {
 	Outlet
-	Via(Flow) Flow
+	Via(Transfer) Transfer
 }
 
-// Flow represents a set of stream processing steps that has one open input and one open output.
-type Flow interface {
+// Transfer represents a set of stream processing steps that has one open input and one open output.
+type Transfer interface {
 	Inlet
 	Outlet
-	Via(Flow) Flow
+	Via(Transfer) Transfer
 	To(Sink)
 }
 
 type Stater interface {
-	TransState() *transState
+	State() *state
 	Context() context.Context
-	SetTransState(state *transState)
+	setState(state *state)
 }
 
 // Sink represents a set of stream processing steps that has one open input.
 type Sink interface {
 	Inlet
 	Done()
-	SetSinkTransState(state *transState)
+	SetSinkState(state *state)
 }
 
-type TransStateConf struct {
-	transState *transState
+type MemorySink[T any] interface {
+	Sink
+	Result() []T
 }
 
-func (bs *TransStateConf) TransState() *transState {
+type StateConf struct {
+	transState *state
+}
+
+func (bs *StateConf) State() *state {
 	return bs.transState
 }
 
-func (bs *TransStateConf) Context() context.Context {
+func (bs *StateConf) Context() context.Context {
 	return bs.transState.ctx
 }
 
-func (bs *TransStateConf) Done() {
+func (bs *StateConf) Done() {
 	bs.transState.wg.Done()
 }
 
-func (bs *TransStateConf) SetTransState(transState *transState) {
-	bs.transState = transState
+func (bs *StateConf) setState(s *state) {
+	bs.transState = s
 }
 
-func (bs *TransStateConf) SetSinkTransState(transState *transState) {
+func (bs *StateConf) SetSinkState(transState *state) {
 	transState.wg.Add(1)
 	bs.transState = transState
 }
 
-func newTransState(ctx context.Context) *transState {
-	return &transState{
+func newState(ctx context.Context) *state {
+	return &state{
 		ctx: ctx,
 	}
 }
 
-type transState struct {
+type state struct {
 	sync.RWMutex
 	ctx context.Context
 	wg  sync.WaitGroup
 	err error
 }
 
-func (s *transState) Wait() {
+func (s *state) Wait() error {
 	s.wg.Wait()
+	return s.error()
 }
 
-func (s *transState) SetErr(err error) {
+func (s *state) SetErr(err error) {
 	s.Lock()
 	defer s.Unlock()
 	if s.err != nil {
@@ -95,12 +101,12 @@ func (s *transState) SetErr(err error) {
 	s.err = err
 }
 
-func (s *transState) Err() error {
+func (s *state) error() error {
 	s.RLock()
 	defer s.RUnlock()
 	return s.err
 }
 
-func (s *transState) IsErr() bool {
-	return s.Err() != nil
+func (s *state) HasErr() bool {
+	return s.error() != nil
 }

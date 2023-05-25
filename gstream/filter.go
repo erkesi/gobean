@@ -1,4 +1,4 @@
-package gdataflow
+package gstream
 
 import "context"
 
@@ -15,15 +15,15 @@ type FilterPredicate[T any] func(context.Context, T) bool
 //
 // out -- 1 -- 2 ------------------ 5 --
 type Filter[T any] struct {
-	TransStateConf
+	StateConf
 	filterPredicate FilterPredicate[T]
 	in              chan interface{}
 	out             chan interface{}
 	parallelism     uint
 }
 
-// Verify Filter satisfies the Flow interface.
-var _ Flow = (*Filter[any])(nil)
+// Verify Filter satisfies the Transfer interface.
+var _ Transfer = (*Filter[any])(nil)
 
 // NewFilter returns a new Filter instance.
 //
@@ -42,15 +42,15 @@ func NewFilter[T any](filterPredicate FilterPredicate[T], parallelism uint) *Fil
 }
 
 // Via streams data through the given flow
-func (f *Filter[T]) Via(flow Flow) Flow {
-	flow.SetTransState(f.TransState())
+func (f *Filter[T]) Via(flow Transfer) Transfer {
+	flow.setState(f.State())
 	go f.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (f *Filter[T]) To(sink Sink) {
-	sink.SetSinkTransState(f.TransState())
+	sink.SetSinkState(f.State())
 	go f.transmit(sink)
 }
 

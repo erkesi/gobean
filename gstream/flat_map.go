@@ -1,4 +1,4 @@
-package gdataflow
+package gstream
 
 import "context"
 
@@ -13,15 +13,15 @@ type FlatMapFunction[T, R any] func(context.Context, T) []R
 //
 // out -- 1' - 2' -------- 4'- 4" - 5' -
 type FlatMap[T, R any] struct {
-	TransStateConf
+	StateConf
 	flatMapFunction FlatMapFunction[T, R]
 	in              chan interface{}
 	out             chan interface{}
 	parallelism     uint
 }
 
-// Verify FlatMap satisfies the Flow interface.
-var _ Flow = (*FlatMap[any, any])(nil)
+// Verify FlatMap satisfies the Transfer interface.
+var _ Transfer = (*FlatMap[any, any])(nil)
 
 // NewFlatMap returns a new FlatMap instance.
 //
@@ -40,15 +40,15 @@ func NewFlatMap[T, R any](flatMapFunction FlatMapFunction[T, R], parallelism uin
 }
 
 // Via streams data through the given flow
-func (fm *FlatMap[T, R]) Via(flow Flow) Flow {
-	flow.SetTransState(fm.TransState())
+func (fm *FlatMap[T, R]) Via(flow Transfer) Transfer {
+	flow.setState(fm.State())
 	go fm.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (fm *FlatMap[T, R]) To(sink Sink) {
-	sink.SetSinkTransState(fm.TransState())
+	sink.SetSinkState(fm.State())
 	go fm.transmit(sink)
 }
 
