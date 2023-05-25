@@ -6,7 +6,7 @@ package gdataflow
 //
 // out -- 1 -- 2 ---- 3 -- 4 ------ 5 --
 type passThrough struct {
-	FlowState
+	TransStateConf
 	in  chan interface{}
 	out chan interface{}
 }
@@ -27,14 +27,14 @@ func newPassThrough() *passThrough {
 
 // Via streams data through the given flow
 func (pt *passThrough) Via(flow Flow) Flow {
-	flow.SetState(pt.State())
+	flow.SetTransState(pt.TransState())
 	go pt.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (pt *passThrough) To(sink Sink) {
-	sink.SetSinkState(pt.State())
+	sink.SetSinkTransState(pt.TransState())
 	go pt.transmit(sink)
 }
 

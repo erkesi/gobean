@@ -1,7 +1,9 @@
 package gdataflow
 
+import "context"
+
 // FilterPredicate represents a filter predicate (boolean-valued function).
-type FilterPredicate[T any] func(T) bool
+type FilterPredicate[T any] func(context.Context, T) bool
 
 // Filter filters incoming elements using a filter predicate.
 // If an element matches the predicate, the element is passed downstream.
@@ -13,7 +15,7 @@ type FilterPredicate[T any] func(T) bool
 //
 // out -- 1 -- 2 ------------------ 5 --
 type Filter[T any] struct {
-	FlowState
+	TransStateConf
 	filterPredicate FilterPredicate[T]
 	in              chan interface{}
 	out             chan interface{}
@@ -41,14 +43,14 @@ func NewFilter[T any](filterPredicate FilterPredicate[T], parallelism uint) *Fil
 
 // Via streams data through the given flow
 func (f *Filter[T]) Via(flow Flow) Flow {
-	flow.SetState(f.State())
+	flow.SetTransState(f.TransState())
 	go f.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (f *Filter[T]) To(sink Sink) {
-	sink.SetSinkState(f.State())
+	sink.SetSinkTransState(f.TransState())
 	go f.transmit(sink)
 }
 
@@ -76,7 +78,7 @@ func (f *Filter[T]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-			if f.filterPredicate(element) {
+			if f.filterPredicate(f.Context(), element) {
 				f.out <- element
 			}
 		}(elem.(T))

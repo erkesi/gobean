@@ -1,18 +1,21 @@
 package gdataflow
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 type dataSource struct {
-	FlowState
+	TransStateConf
 	in <-chan interface{}
 }
 
-func NewDataSource(out Outlet) Source {
-	state := &State{}
-	out.SetState(state)
+func NewDataSource(ctx context.Context, out Outlet) Source {
+	state := newTransState(ctx)
+	out.SetTransState(state)
 	return &dataSource{
-		FlowState: FlowState{state: state},
-		in:        out.Out(),
+		TransStateConf: TransStateConf{transState: state},
+		in:             out.Out(),
 	}
 }
 
@@ -21,7 +24,7 @@ func (ds *dataSource) Out() <-chan interface{} {
 }
 
 func (ds *dataSource) Via(flow Flow) Flow {
-	flow.SetState(ds.State())
+	flow.SetTransState(ds.TransState())
 	ds.doStream(ds, flow)
 	return flow
 }
@@ -32,7 +35,6 @@ func (ds *dataSource) doStream(outlet Outlet, inlet Inlet) {
 		for element := range outlet.Out() {
 			inlet.In() <- element
 		}
-
 		close(inlet.In())
 	}()
 }
@@ -40,9 +42,9 @@ func (ds *dataSource) doStream(outlet Outlet, inlet Inlet) {
 // Split splits the stream into two flows according to the given boolean predicate.
 func Split[T any](outlet Outlet, predicate func(T) bool) [2]Flow {
 	condTrue := newPassThrough()
-	condTrue.SetState(outlet.State())
+	condTrue.SetTransState(outlet.TransState())
 	condFalse := newPassThrough()
-	condFalse.SetState(outlet.State())
+	condFalse.SetTransState(outlet.TransState())
 	go func() {
 		for element := range outlet.Out() {
 			if predicate(element.(T)) {
@@ -64,7 +66,7 @@ func FanOut(outlet Outlet, magnitude int) []Flow {
 	var out []Flow
 	for i := 0; i < magnitude; i++ {
 		pt := newPassThrough()
-		pt.SetState(outlet.State())
+		pt.SetTransState(outlet.TransState())
 		out = append(out, pt)
 	}
 
@@ -85,7 +87,7 @@ func FanOut(outlet Outlet, magnitude int) []Flow {
 // Merge merges multiple flows into a single flow.
 func Merge(outlets ...Flow) Flow {
 	merged := newPassThrough()
-	merged.SetState(outlets[0].State())
+	merged.SetTransState(outlets[0].TransState())
 	var wg sync.WaitGroup
 	wg.Add(len(outlets))
 

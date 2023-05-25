@@ -1,7 +1,9 @@
 package gdataflow
 
+import "context"
+
 // ReduceFunction combines the current element with the last reduced value.
-type ReduceFunction[T any] func(T, T) T
+type ReduceFunction[T any] func(context.Context, T, T) T
 
 // Reduce represents a “rolling” reduce on a data stream.
 // Combines the current element with the last reduced value and emits the new value.
@@ -12,7 +14,7 @@ type ReduceFunction[T any] func(T, T) T
 //
 // out -- 1 -- 2' --- 3' - 4' ----- 5' -
 type Reduce[T any] struct {
-	FlowState
+	TransStateConf
 	reduceFunction ReduceFunction[T]
 	in             chan interface{}
 	out            chan interface{}
@@ -37,14 +39,14 @@ func NewReduce[T any](reduceFunction ReduceFunction[T]) *Reduce[T] {
 
 // Via streams data through the given flow
 func (r *Reduce[T]) Via(flow Flow) Flow {
-	flow.SetState(r.State())
+	flow.SetTransState(r.TransState())
 	go r.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (r *Reduce[T]) To(sink Sink) {
-	sink.SetSinkState(r.State())
+	sink.SetSinkTransState(r.TransState())
 	go r.transmit(sink)
 }
 
@@ -70,7 +72,7 @@ func (r *Reduce[T]) doStream() {
 		if r.lastReduced == nil {
 			r.lastReduced = element
 		} else {
-			r.lastReduced = r.reduceFunction(r.lastReduced.(T), element.(T))
+			r.lastReduced = r.reduceFunction(r.Context(), r.lastReduced.(T), element.(T))
 		}
 		r.out <- r.lastReduced
 	}

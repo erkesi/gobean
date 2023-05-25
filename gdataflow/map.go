@@ -1,7 +1,9 @@
 package gdataflow
 
+import "context"
+
 // MapFunction represents a Map transformation function.
-type MapFunction[T, R any] func(T) R
+type MapFunction[T, R any] func(context.Context, T) R
 
 // Map takes one element and produces one element.
 //
@@ -11,7 +13,7 @@ type MapFunction[T, R any] func(T) R
 //
 // out -- 1' - 2' --- 3' - 4' ----- 5' -
 type Map[T, R any] struct {
-	FlowState
+	TransStateConf
 	mapFunction MapFunction[T, R]
 	in          chan interface{}
 	out         chan interface{}
@@ -38,14 +40,14 @@ func NewMap[T, R any](mapFunction MapFunction[T, R], parallelism uint) *Map[T, R
 
 // Via streams data through the given flow
 func (m *Map[T, R]) Via(flow Flow) Flow {
-	flow.SetState(m.State())
+	flow.SetTransState(m.TransState())
 	go m.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (m *Map[T, R]) To(sink Sink) {
-	sink.SetSinkState(m.State())
+	sink.SetSinkTransState(m.TransState())
 	go m.transmit(sink)
 }
 
@@ -72,7 +74,7 @@ func (m *Map[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-			result := m.mapFunction(element)
+			result := m.mapFunction(m.Context(), element)
 			m.out <- result
 		}(elem.(T))
 	}

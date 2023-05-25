@@ -1,7 +1,9 @@
 package gdataflow
 
+import "context"
+
 // FlatMapFunction represents a FlatMap transformation function.
-type FlatMapFunction[T, R any] func(T) []R
+type FlatMapFunction[T, R any] func(context.Context, T) []R
 
 // FlatMap takes one element and produces zero, one, or more elements.
 //
@@ -11,7 +13,7 @@ type FlatMapFunction[T, R any] func(T) []R
 //
 // out -- 1' - 2' -------- 4'- 4" - 5' -
 type FlatMap[T, R any] struct {
-	FlowState
+	TransStateConf
 	flatMapFunction FlatMapFunction[T, R]
 	in              chan interface{}
 	out             chan interface{}
@@ -39,14 +41,14 @@ func NewFlatMap[T, R any](flatMapFunction FlatMapFunction[T, R], parallelism uin
 
 // Via streams data through the given flow
 func (fm *FlatMap[T, R]) Via(flow Flow) Flow {
-	flow.SetState(fm.State())
+	flow.SetTransState(fm.TransState())
 	go fm.transmit(flow)
 	return flow
 }
 
 // To streams data to the given sink
 func (fm *FlatMap[T, R]) To(sink Sink) {
-	sink.SetSinkState(fm.State())
+	sink.SetSinkTransState(fm.TransState())
 	go fm.transmit(sink)
 }
 
@@ -73,7 +75,7 @@ func (fm *FlatMap[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-			result := fm.flatMapFunction(element)
+			result := fm.flatMapFunction(fm.Context(), element)
 			for _, item := range result {
 				fm.out <- item
 			}

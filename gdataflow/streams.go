@@ -1,6 +1,9 @@
 package gdataflow
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 // Inlet represents a type that exposes one open input.
 type Inlet interface {
@@ -29,53 +32,61 @@ type Flow interface {
 }
 
 type Stater interface {
-	State() *State
-	SetState(state *State)
-}
-
-type Done interface {
-	Done()
+	TransState() *transState
+	Context() context.Context
+	SetTransState(state *transState)
 }
 
 // Sink represents a set of stream processing steps that has one open input.
 type Sink interface {
 	Inlet
-	Done
-	SetSinkState(state *State)
+	Done()
+	SetSinkTransState(state *transState)
 }
 
-type FlowState struct {
-	state *State
+type TransStateConf struct {
+	transState *transState
 }
 
-func (bs *FlowState) State() *State {
-	return bs.state
+func (bs *TransStateConf) TransState() *transState {
+	return bs.transState
 }
 
-func (bs *FlowState) Done() {
-	bs.state.wg.Done()
+func (bs *TransStateConf) Context() context.Context {
+	return bs.transState.ctx
 }
 
-func (bs *FlowState) SetState(state *State) {
-	bs.state = state
+func (bs *TransStateConf) Done() {
+	bs.transState.wg.Done()
 }
 
-func (bs *FlowState) SetSinkState(state *State) {
-	state.wg.Add(1)
-	bs.state = state
+func (bs *TransStateConf) SetTransState(transState *transState) {
+	bs.transState = transState
 }
 
-type State struct {
+func (bs *TransStateConf) SetSinkTransState(transState *transState) {
+	transState.wg.Add(1)
+	bs.transState = transState
+}
+
+func newTransState(ctx context.Context) *transState {
+	return &transState{
+		ctx: ctx,
+	}
+}
+
+type transState struct {
 	sync.RWMutex
+	ctx context.Context
 	wg  sync.WaitGroup
 	err error
 }
 
-func (s *State) Wait() {
+func (s *transState) Wait() {
 	s.wg.Wait()
 }
 
-func (s *State) SetErr(err error) {
+func (s *transState) SetErr(err error) {
 	s.Lock()
 	defer s.Unlock()
 	if s.err != nil {
@@ -84,12 +95,12 @@ func (s *State) SetErr(err error) {
 	s.err = err
 }
 
-func (s *State) Err() error {
+func (s *transState) Err() error {
 	s.RLock()
 	defer s.RUnlock()
 	return s.err
 }
 
-func (s *State) IsErr() bool {
+func (s *transState) IsErr() bool {
 	return s.Err() != nil
 }
