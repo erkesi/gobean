@@ -3,7 +3,7 @@ package gstream
 import "context"
 
 // MapFunction represents a Map transformation function.
-type MapFunction[T, R any] func(context.Context, T) R
+type MapFunction[T, R any] func(context.Context, T) (R, error)
 
 // Map takes one element and produces one element.
 //
@@ -74,7 +74,11 @@ func (m *Map[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-			result := m.mapFunction(m.Context(), element)
+			result, err := m.mapFunction(m.Context(), element)
+			if err != nil {
+				m.SetStateErr(err)
+				return
+			}
 			m.out <- result
 		}(elem.(T))
 	}

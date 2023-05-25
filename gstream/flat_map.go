@@ -3,7 +3,7 @@ package gstream
 import "context"
 
 // FlatMapFunction represents a FlatMap transformation function.
-type FlatMapFunction[T, R any] func(context.Context, T) []R
+type FlatMapFunction[T, R any] func(context.Context, T) ([]R, error)
 
 // FlatMap takes one element and produces zero, one, or more elements.
 //
@@ -75,7 +75,11 @@ func (fm *FlatMap[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-			result := fm.flatMapFunction(fm.Context(), element)
+			result, err := fm.flatMapFunction(fm.Context(), element)
+			if err != nil {
+				fm.SetStateErr(err)
+				return
+			}
 			for _, item := range result {
 				fm.out <- item
 			}

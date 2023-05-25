@@ -3,7 +3,7 @@ package gstream
 import "context"
 
 // ReduceFunction combines the current element with the last reduced value.
-type ReduceFunction[T any] func(context.Context, T, T) T
+type ReduceFunction[T any] func(context.Context, T, T) (T, error)
 
 // Reduce represents a “rolling” reduce on a data stream.
 // Combines the current element with the last reduced value and emits the new value.
@@ -72,7 +72,12 @@ func (r *Reduce[T]) doStream() {
 		if r.lastReduced == nil {
 			r.lastReduced = element
 		} else {
-			r.lastReduced = r.reduceFunction(r.Context(), r.lastReduced.(T), element.(T))
+			lastReduced, err := r.reduceFunction(r.Context(), r.lastReduced.(T), element.(T))
+			if err != nil {
+				r.SetStateErr(err)
+				continue
+			}
+			r.lastReduced = lastReduced
 		}
 		r.out <- r.lastReduced
 	}

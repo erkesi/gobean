@@ -12,7 +12,7 @@ import (
 func TestNewDataSourceOf(t *testing.T) {
 	dataStream := NewDataStreamOf(context.TODO(), []int{1, 2, 3})
 	sink := NewMemorySink[int]()
-	dataStream.Via(NewFilter(func(ctx context.Context, i int) bool { return i < 2 }, 1)).To(sink)
+	dataStream.Via(NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil }, 1)).To(sink)
 	err := dataStream.State().Wait()
 	if err != nil {
 		t.Fatal(err)
@@ -33,7 +33,7 @@ func TestNewDataSource(t *testing.T) {
 	var sinks []*stdoutSink
 	for i, transfer := range transfers {
 		if i == 0 {
-			transfer = transfer.Via(NewFlatMap(func(ctx context.Context, s string) []string { return []string{s + "f"} }, 1))
+			transfer = transfer.Via(NewFlatMap(func(ctx context.Context, s string) ([]string, error) { return []string{s + "f"}, nil }, 1))
 		}
 		sink := newStdoutSink(i)
 		sinks = append(sinks, sink)
@@ -57,8 +57,8 @@ type A struct {
 	lines []string
 }
 
-func (a *A) messageToStrs(ctx context.Context, item *message) []string {
-	return []string{item.content}
+func (a *A) messageToStrs(ctx context.Context, item *message) ([]string, error) {
+	return []string{item.content}, nil
 }
 
 type tickerOutlet struct {

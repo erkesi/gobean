@@ -3,7 +3,7 @@ package gstream
 import "context"
 
 // FilterPredicate represents a filter predicate (boolean-valued function).
-type FilterPredicate[T any] func(context.Context, T) bool
+type FilterPredicate[T any] func(context.Context, T) (bool, error)
 
 // Filter filters incoming elements using a filter predicate.
 // If an element matches the predicate, the element is passed downstream.
@@ -78,7 +78,12 @@ func (f *Filter[T]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-			if f.filterPredicate(f.Context(), element) {
+			ok, err := f.filterPredicate(f.Context(), element)
+			if err != nil {
+				f.SetStateErr(err)
+				return
+			}
+			if ok {
 				f.out <- element
 			}
 		}(elem.(T))
