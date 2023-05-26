@@ -23,10 +23,10 @@ func TestNewDataSourceOf(t *testing.T) {
 }
 
 func TestNewDataSource(t *testing.T) {
-	output := &tickerOutlet{}
+	output := &tickerOutlet{FlowState: FlowStateWithContext(context.TODO())}
 	output.init()
 
-	dataStream := NewDataStream(context.TODO(), output)
+	dataStream := NewDataStream(output)
 
 	a := &A{}
 	transfers := FanOut(dataStream.Via(NewFlatMap(a.messageToStrs, 1)), 2)

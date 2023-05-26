@@ -50,6 +50,10 @@ type MemorySink[T any] interface {
 	Result() []T
 }
 
+func FlowStateWithContext(ctx context.Context) FlowState {
+	return FlowState{_state: NewState(ctx)}
+}
+
 type FlowState struct {
 	_state *state
 }
@@ -83,7 +87,7 @@ func (bs *FlowState) SetSinkState(transState *state) {
 	bs._state = transState
 }
 
-func newState(ctx context.Context) *state {
+func NewState(ctx context.Context) *state {
 	return &state{
 		ctx: ctx,
 	}

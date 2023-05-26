@@ -11,17 +11,19 @@ type dataSource struct {
 	in <-chan interface{}
 }
 
-func NewDataStream(ctx context.Context, out Outlet) Source {
-	state := newState(ctx)
-	out.setState(state)
-	return &dataSource{
-		FlowState: FlowState{_state: state},
-		in:        out.Out(),
+func NewDataStream(out Outlet) Source {
+	if out.State() == nil {
+		panic("outlet state is nil")
 	}
+	ds := &dataSource{
+		in: out.Out(),
+	}
+	ds.setState(out.State())
+	return ds
 }
 
 func NewDataStreamOf(ctx context.Context, data interface{}) Source {
-	state := newState(ctx)
+	state := NewState(ctx)
 	return &dataSource{
 		FlowState: FlowState{_state: state},
 		in:        interface2Chan(data),
