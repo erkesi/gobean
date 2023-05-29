@@ -46,7 +46,7 @@ func (r *Reduce[T]) Via(flow Transfer) Transfer {
 
 // To streams data to the given sink
 func (r *Reduce[T]) To(sink Sink) {
-	sink.SetSinkState(r.State())
+	sink.setSinkState(r.State())
 	go r.transmit(sink)
 }
 

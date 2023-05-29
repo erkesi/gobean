@@ -29,12 +29,12 @@ var _ Transfer = (*Filter[any])(nil)
 //
 // filterPredicate is the boolean-valued filter function.
 // parallelism is the flow parallelism factor. In case the events order matters, use parallelism = 1.
-func NewFilter[T any](filterPredicate FilterPredicate[T], parallelism uint) *Filter[T] {
+func NewFilter[T any](filterPredicate FilterPredicate[T], parallelism ...uint) *Filter[T] {
 	filter := &Filter[T]{
 		filterPredicate: filterPredicate,
 		in:              make(chan interface{}),
 		out:             make(chan interface{}),
-		parallelism:     parallelism,
+		parallelism:     parallel(parallelism),
 	}
 	go filter.doStream()
 
@@ -50,7 +50,7 @@ func (f *Filter[T]) Via(flow Transfer) Transfer {
 
 // To streams data to the given sink
 func (f *Filter[T]) To(sink Sink) {
-	sink.SetSinkState(f.State())
+	sink.setSinkState(f.State())
 	go f.transmit(sink)
 }
 

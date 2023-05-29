@@ -34,7 +34,7 @@ func (pt *passThrough) Via(flow Transfer) Transfer {
 
 // To streams data to the given sink
 func (pt *passThrough) To(sink Sink) {
-	sink.SetSinkState(pt.State())
+	sink.setSinkState(pt.State())
 	go pt.transmit(sink)
 }
 

@@ -27,12 +27,12 @@ var _ Transfer = (*Map[any, any])(nil)
 //
 // mapFunction is the Map transformation function.
 // parallelism is the flow parallelism factor. In case the events order matters, use parallelism = 1.
-func NewMap[T, R any](mapFunction MapFunction[T, R], parallelism uint) *Map[T, R] {
+func NewMap[T, R any](mapFunction MapFunction[T, R], parallelism ...uint) *Map[T, R] {
 	mapFlow := &Map[T, R]{
 		mapFunction: mapFunction,
 		in:          make(chan interface{}),
 		out:         make(chan interface{}),
-		parallelism: parallelism,
+		parallelism: parallel(parallelism),
 	}
 	go mapFlow.doStream()
 	return mapFlow
@@ -47,7 +47,7 @@ func (m *Map[T, R]) Via(flow Transfer) Transfer {
 
 // To streams data to the given sink
 func (m *Map[T, R]) To(sink Sink) {
-	sink.SetSinkState(m.State())
+	sink.setSinkState(m.State())
 	go m.transmit(sink)
 }
 

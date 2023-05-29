@@ -27,12 +27,12 @@ var _ Transfer = (*FlatMap[any, any])(nil)
 //
 // flatMapFunction is the FlatMap transformation function.
 // parallelism is the flow parallelism factor. In case the events order matters, use parallelism = 1.
-func NewFlatMap[T, R any](flatMapFunction FlatMapFunction[T, R], parallelism uint) *FlatMap[T, R] {
+func NewFlatMap[T, R any](flatMapFunction FlatMapFunction[T, R], parallelism ...uint) *FlatMap[T, R] {
 	flatMap := &FlatMap[T, R]{
 		flatMapFunction: flatMapFunction,
 		in:              make(chan interface{}),
 		out:             make(chan interface{}),
-		parallelism:     parallelism,
+		parallelism:     parallel(parallelism),
 	}
 	go flatMap.doStream()
 
@@ -48,7 +48,7 @@ func (fm *FlatMap[T, R]) Via(flow Transfer) Transfer {
 
 // To streams data to the given sink
 func (fm *FlatMap[T, R]) To(sink Sink) {
-	sink.SetSinkState(fm.State())
+	sink.setSinkState(fm.State())
 	go fm.transmit(sink)
 }
 

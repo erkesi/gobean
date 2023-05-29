@@ -41,8 +41,7 @@ type Stater interface {
 // Sink represents a set of stream processing steps that has one open input.
 type Sink interface {
 	Inlet
-	Done()
-	SetSinkState(state *state)
+	setSinkState(state *state)
 }
 
 type MemorySink[T any] interface {
@@ -82,7 +81,7 @@ func (bs *FlowState) HasStateErr() bool {
 	return bs._state.hasErr()
 }
 
-func (bs *FlowState) SetSinkState(transState *state) {
+func (bs *FlowState) setSinkState(transState *state) {
 	transState.wg.Add(1)
 	bs._state = transState
 }
@@ -122,4 +121,11 @@ func (s *state) error() error {
 
 func (s *state) hasErr() bool {
 	return s.error() != nil
+}
+
+func parallel(parallelism []uint) uint {
+	if len(parallelism) > 0 {
+		return parallelism[0]
+	}
+	return 1
 }
