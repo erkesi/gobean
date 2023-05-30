@@ -2,7 +2,6 @@ package gstream
 
 import (
 	"context"
-	"reflect"
 	"sync"
 )
 
@@ -22,11 +21,46 @@ func NewDataStream(out Outlet) Source {
 	return ds
 }
 
-func NewDataStreamOf(ctx context.Context, data interface{}) Source {
+type CursorNext[T any] func(ctx context.Context) (items []T, hasNext bool, err error)
+
+func NewDataStreamOfCursor[T any](ctx context.Context, cursor func(ctx context.Context) CursorNext[T]) Source {
 	state := NewState(ctx)
+	in := make(chan interface{})
+	go func() {
+		defer close(in)
+		next := cursor(ctx)
+		for {
+			items, hasNext, err := next(ctx)
+			if err != nil {
+				state.setErr(err)
+				return
+			}
+			for _, item := range items {
+				in <- item
+			}
+			if !hasNext {
+				return
+			}
+		}
+	}()
 	return &dataSource{
 		FlowState: FlowState{_state: state},
-		in:        interface2Chan(data),
+		in:        in,
+	}
+}
+
+func NewDataStreamOf[T any](ctx context.Context, items []T) Source {
+	state := NewState(ctx)
+	in := make(chan interface{})
+	go func() {
+		for _, item := range items {
+			in <- item
+		}
+		close(in)
+	}()
+	return &dataSource{
+		FlowState: FlowState{_state: state},
+		in:        in,
 	}
 }
 
@@ -118,19 +152,4 @@ func Merge(outlets ...Transfer) Transfer {
 	}(&wg)
 
 	return merged
-}
-
-func interface2Chan(data interface{}) chan interface{} {
-	rv := reflect.ValueOf(data)
-	if rv.Kind() != reflect.Slice {
-		panic("data must be slice")
-	}
-	in := make(chan interface{})
-	go func() {
-		for i := 0; i < rv.Len(); i++ {
-			in <- rv.Index(i).Interface()
-		}
-		close(in)
-	}()
-	return in
 }
