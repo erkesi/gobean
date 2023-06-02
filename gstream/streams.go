@@ -44,6 +44,36 @@ type Sink interface {
 	setSinkState(state *state)
 }
 
+type Optional[T any] interface {
+	Get() T
+	IsPresent() bool
+}
+
+func NewOptional[T any](t T) Optional[T] {
+	return &optional[T]{val: t, isPresent: true}
+}
+
+func NewEmptyOptional[T any]() Optional[T] {
+	return &optional[T]{}
+}
+
+type optional[T any] struct {
+	isPresent bool
+	val       T
+}
+
+func (o *optional[T]) Get() T {
+	return o.val
+}
+
+func (o *optional[T]) IsPresent() bool {
+	return o.isPresent
+}
+
+type StoreSink[T any] interface {
+	Sink
+}
+
 type MemorySink[T any] interface {
 	Sink
 	Result() []T

@@ -88,5 +88,6 @@ func (fm *FlatMap[T, R]) doStream() {
 	for i := 0; i < int(fm.parallelism); i++ {
 		sem <- struct{}{}
 	}
+
 	close(fm.out)
 }

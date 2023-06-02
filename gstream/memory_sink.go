@@ -7,27 +7,27 @@ type memorySink[T any] struct {
 }
 
 func NewMemorySink[T any]() MemorySink[T] {
-	ds := &memorySink[T]{
+	sink := &memorySink[T]{
 		in: make(chan interface{}),
 	}
-	ds.init()
-	return ds
+	sink.init()
+	return sink
 }
 
-func (ds *memorySink[T]) init() {
+func (sink *memorySink[T]) init() {
 	go func() {
-		for elem := range ds.in {
-			ds.result = append(ds.result, elem.(T))
+		for elem := range sink.in {
+			sink.result = append(sink.result, elem.(T))
 		}
-		ds.Done()
+		sink.Done()
 	}()
 }
 
 // In returns an input channel for receiving data
-func (ds *memorySink[T]) In() chan<- interface{} {
-	return ds.in
+func (sink *memorySink[T]) In() chan<- interface{} {
+	return sink.in
 }
 
-func (ds *memorySink[T]) Result() []T {
-	return ds.result
+func (sink *memorySink[T]) Result() []T {
+	return sink.result
 }
