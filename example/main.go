@@ -111,7 +111,7 @@ func testStoreSink() {
 }
 
 func testNewDataStreamOf() {
-	dataStream := gstream.NewDataStreamOf(context.TODO(), []int{1, 2, 3})
+	dataStream := gstream.NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
 	sink := gstream.NewMemorySink[int]()
 	dataStream.Via(gstream.NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).To(sink)
 
