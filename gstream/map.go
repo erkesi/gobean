@@ -74,6 +74,9 @@ func (m *Map[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
+			if m.HasStateErr() {
+				return
+			}
 			result, err := m.mapFunction(m.Context(), element)
 			if err != nil {
 				m.SetStateErr(err)

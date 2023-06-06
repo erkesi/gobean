@@ -69,6 +69,9 @@ func (r *Reduce[T]) transmit(inlet Inlet) {
 
 func (r *Reduce[T]) doStream() {
 	for element := range r.in {
+		if r.HasStateErr() {
+			continue
+		}
 		if r.lastReduced == nil {
 			r.lastReduced = element
 		} else {

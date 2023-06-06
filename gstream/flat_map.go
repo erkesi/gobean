@@ -75,6 +75,9 @@ func (fm *FlatMap[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
+			if fm.HasStateErr() {
+				return
+			}
 			result, err := fm.flatMapFunction(fm.Context(), element)
 			if err != nil {
 				fm.SetStateErr(err)

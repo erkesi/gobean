@@ -78,6 +78,9 @@ func (f *Filter[T]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
+			if f.HasStateErr() {
+				return
+			}
 			ok, err := f.filterPredicate(f.Context(), element)
 			if err != nil {
 				f.SetStateErr(err)

@@ -36,6 +36,9 @@ func NewDataStreamOfCursor[T any](ctx context.Context, cursor func(ctx context.C
 				return
 			}
 			for _, item := range items {
+				if state.hasErr() {
+					return
+				}
 				in <- item
 			}
 			if !hasNext {
@@ -49,11 +52,14 @@ func NewDataStreamOfCursor[T any](ctx context.Context, cursor func(ctx context.C
 	}
 }
 
-func NewDataStreamOf[T any](ctx context.Context, items []T) Source {
+func NewDataStreamOfSlice[T any](ctx context.Context, items []T) Source {
 	state := NewState(ctx)
 	in := make(chan interface{})
 	go func() {
 		for _, item := range items {
+			if state.hasErr() {
+				return
+			}
 			in <- item
 		}
 		close(in)

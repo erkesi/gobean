@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewDataSourceOf(t *testing.T) {
-	dataStream := NewDataStreamOf(context.TODO(), []int{1, 2, 3})
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
 	sink := NewMemorySink[int]()
 	dataStream.Via(NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).To(sink)
 	err := dataStream.State().Wait()
