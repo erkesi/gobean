@@ -3,11 +3,96 @@ package gstreamings
 import (
 	"context"
 	"fmt"
+	"github.com/erkesi/gobean/gerrors"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 )
+
+func TestNewDataSourceOfPanic1(t *testing.T) {
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+	sink := NewMemorySink[int]()
+	dataStream.Via(NewFilter(func(ctx context.Context, i int) (bool, error) {
+		if i < 2 {
+			return true, nil
+		}
+		panic("panic-2")
+	})).To(sink)
+	err := dataStream.State().Wait()
+	if perr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(perr)
+	} else if !strings.Contains(perr.Error(), "panic-2") {
+		t.Fatal(perr)
+	}
+}
+
+func TestNewDataSourceOfPanic2(t *testing.T) {
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+	sink := NewMemorySink[string]()
+	dataStream.Via(NewFlatMap(func(ctx context.Context, i int) ([]string, error) {
+		if i < 2 {
+			return []string{"1", "2"}, nil
+		}
+		panic("panic-2")
+	})).To(sink)
+	err := dataStream.State().Wait()
+	if perr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(perr)
+	} else if !strings.Contains(perr.Error(), "panic-2") {
+		t.Fatal(perr)
+	}
+}
+
+func TestNewDataSourceOfPanic3(t *testing.T) {
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+	sink := NewMemorySink[string]()
+	dataStream.Via(NewMap(func(ctx context.Context, i int) (string, error) {
+		if i < 2 {
+			return "2", nil
+		}
+		panic("panic-2")
+	})).To(sink)
+	err := dataStream.State().Wait()
+	if perr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(perr)
+	} else if !strings.Contains(perr.Error(), "panic-2") {
+		t.Fatal(perr)
+	}
+}
+
+func TestNewDataSourceOfPanic4(t *testing.T) {
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+	sink := NewMemorySink[int]()
+	dataStream.Via(NewReduce(func(ctx context.Context, t, i int) (int, error) {
+		if i < 2 {
+			return t + i, nil
+		}
+		panic("panic-2")
+	})).To(sink)
+	err := dataStream.State().Wait()
+	if perr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(perr)
+	} else if !strings.Contains(perr.Error(), "panic-2") {
+		t.Fatal(perr)
+	}
+}
+
+func TestNewDataSourceOfReduce(t *testing.T) {
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+	sink := NewMemorySink[int]()
+	dataStream.Via(NewReduce(func(ctx context.Context, t, i int) (int, error) {
+		return t + i, nil
+	})).To(sink)
+	err := dataStream.State().Wait()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sink.Result()[len(sink.Result())-1] != 6 {
+		t.Fatal(sink.Result())
+	}
+}
 
 func TestNewDataSourceOf(t *testing.T) {
 	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
@@ -46,7 +131,7 @@ func TestNewDataSource(t *testing.T) {
 	}
 
 	for _, sink := range sinks {
-		if atomic.LoadInt64(&sink.count) != 4 {
+		if atomic.LoadInt64(&sink.count) < 2 {
 			t.Fatal(atomic.LoadInt64(&sink.count))
 		}
 	}

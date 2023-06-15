@@ -209,4 +209,9 @@ import github.com/erkesi/gobean/gapplications
 
 > gapplications.Close()
 
+## gobean/gstreamings
 
+### 数据流处理，source -> transform -> sink
+
+## gobean/gstreams
+### 集合数据流式处理，类似 java stream
