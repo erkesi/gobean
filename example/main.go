@@ -7,14 +7,6 @@ import (
 	. "github.com/erkesi/gobean/gstreams"
 )
 
-func main() {
-	//testNewDataStreamOf()
-	//testNewDataStreamOfCursor()
-	//testOptional()
-	//testStoreSink()
-	testStreams()
-}
-
 func testStreams() {
 	mapFunc := func(item int) int64 { return int64(item) }
 	reduceFunc := func(pipe <-chan int64) (int64, error) {
@@ -29,6 +21,14 @@ func testStreams() {
 		panic(err)
 	}
 	fmt.Println(r)
+}
+
+func main() {
+	//testNewDataStreamOf()
+	//testNewDataStreamOfCursor()
+	//testOptional()
+	//testStoreSink()
+	testStreams()
 }
 
 func testOptional() {
