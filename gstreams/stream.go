@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	defaultWorkers = 16
-	minWorkers     = 1
+	minWorkers = 1
 )
 
 var empty emptyType
@@ -582,6 +581,6 @@ func drain[T any](channel <-chan T) {
 // newOptions returns a default options.
 func newOptions() *options {
 	return &options{
-		workers: defaultWorkers,
+		workers: minWorkers,
 	}
 }
