@@ -44,7 +44,7 @@ func TestBuffer(t *testing.T) {
 func TestBufferNegative(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		reduce, err := Reduce(Just(1, 2, 3, 4).Buffer(-1), func(pipe <-chan int) (any, error) {
+		reduce, err := Reduce(Just(1, 2, 3, 4).Buffer(-1), func(pipe <-chan int) (int, error) {
 			for item := range pipe {
 				result += item
 			}
@@ -61,22 +61,22 @@ func TestCount(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		tests := []struct {
 			name     string
-			elements []any
+			elements []int
 		}{
 			{
 				name: "no elements with nil",
 			},
 			{
 				name:     "no elements",
-				elements: []any{},
+				elements: []int{},
 			},
 			{
 				name:     "1 element",
-				elements: []any{1},
+				elements: []int{1},
 			},
 			{
 				name:     "multiple elements",
-				elements: []any{1, 2, 3},
+				elements: []int{1, 2, 3},
 			},
 		}
 
@@ -92,7 +92,7 @@ func TestCount(t *testing.T) {
 func TestDone(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var count int32
-		Walk(Just(1, 2, 3), func(item int, pipe chan<- any) {
+		Walk(Just(1, 2, 3), func(item int, pipe chan<- int) {
 			time.Sleep(time.Millisecond * 100)
 			atomic.AddInt32(&count, int32(item))
 		}).Done()
@@ -103,7 +103,7 @@ func TestDone(t *testing.T) {
 func TestJust(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		reduce, err := Reduce(Just(1, 2, 3, 4), func(pipe <-chan int) (any, error) {
+		reduce, err := Reduce(Just(1, 2, 3, 4), func(pipe <-chan int) (int, error) {
 			for item := range pipe {
 				result += item
 			}
@@ -121,7 +121,7 @@ func TestDistinct(t *testing.T) {
 		var result int
 		Reduce(Distinct(Just(4, 1, 3, 2, 3, 4), func(item int) int {
 			return item
-		}), func(pipe <-chan int) (any, error) {
+		}), func(pipe <-chan int) (int, error) {
 			for item := range pipe {
 				result += item
 			}
@@ -247,7 +247,7 @@ func TestLast(t *testing.T) {
 func TestMerge(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		Merge(Just(1, 2, 3, 4)).ForEach(func(item []int) {
-			assert.ElementsMatch(t, []any{1, 2, 3, 4}, item)
+			assert.ElementsMatch(t, []int{1, 2, 3, 4}, item)
 		})
 	})
 }
@@ -266,7 +266,7 @@ func TestParallelJust(t *testing.T) {
 func TestReverse(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		Merge(Just(1, 2, 3, 4).Reverse()).ForEach(func(item []int) {
-			assert.ElementsMatch(t, []any{4, 3, 2, 1}, item)
+			assert.ElementsMatch(t, []int{4, 3, 2, 1}, item)
 		})
 	})
 }
@@ -398,19 +398,19 @@ func TestStream_NoneMatch(t *testing.T) {
 
 func TestConcat(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		a1 := []any{1, 2, 3}
-		a2 := []any{4, 5, 6}
+		a1 := []int{1, 2, 3}
+		a2 := []int{4, 5, 6}
 		s1 := Just(a1...)
 		s2 := Just(a2...)
 		stream := Concat(s1, s2)
-		var items []any
+		var items []int
 		for item := range stream.source {
 			items = append(items, item)
 		}
 		sort.Slice(items, func(i, j int) bool {
-			return items[i].(int) < items[j].(int)
+			return items[i] < items[j]
 		})
-		ints := make([]any, 0)
+		ints := make([]int, 0)
 		ints = append(ints, a1...)
 		ints = append(ints, a2...)
 		assetEqual(t, ints, items)
@@ -526,21 +526,21 @@ func TestStream_Min(t *testing.T) {
 func BenchmarkParallelMapReduce(b *testing.B) {
 	b.ReportAllocs()
 
-	mapper := func(v any) any {
-		return v.(int64) * v.(int64)
+	mapper := func(v int) int {
+		return v * v
 	}
-	reducer := func(input <-chan any) (any, error) {
-		var result int64
+	reducer := func(input <-chan int) (int, error) {
+		var result int
 		for v := range input {
-			result += v.(int64)
+			result += v
 		}
 		return result, nil
 	}
 	b.ResetTimer()
-	Reduce(Map(From(func(input chan<- any) {
+	Reduce(Map(From(func(input chan<- int) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
-				input <- int64(rand.Int())
+				input <- rand.Int()
 			}
 		})
 	}), mapper), reducer)
@@ -549,25 +549,25 @@ func BenchmarkParallelMapReduce(b *testing.B) {
 func BenchmarkMapReduce(b *testing.B) {
 	b.ReportAllocs()
 
-	mapper := func(v any) any {
-		return v.(int64) * v.(int64)
+	mapper := func(v int) int {
+		return v * v
 	}
-	reducer := func(input <-chan any) (any, error) {
-		var result int64
+	reducer := func(input <-chan int) (int, error) {
+		var result int
 		for v := range input {
-			result += v.(int64)
+			result += v
 		}
 		return result, nil
 	}
 	b.ResetTimer()
-	Reduce(Map(From(func(input chan<- any) {
+	Reduce(Map(From(func(input chan<- int) {
 		for i := 0; i < b.N; i++ {
-			input <- int64(rand.Int())
+			input <- rand.Int()
 		}
 	}), mapper), reducer)
 }
 
-func assetEqual(t *testing.T, except, data any) {
+func assetEqual[T any](t *testing.T, except, data T) {
 	if !reflect.DeepEqual(except, data) {
 		t.Errorf(" %v, want %v", data, except)
 	}
