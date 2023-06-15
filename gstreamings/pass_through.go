@@ -1,4 +1,4 @@
-package gstream
+package gstreamings
 
 // passThrough retransmits incoming elements as is.
 //

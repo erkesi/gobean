@@ -1,4 +1,4 @@
-package gstream
+package gstreamings
 
 type memorySink[T any] struct {
 	FlowState

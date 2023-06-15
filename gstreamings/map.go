@@ -1,4 +1,4 @@
-package gstream
+package gstreamings
 
 import "context"
 
