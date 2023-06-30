@@ -95,8 +95,8 @@ func TestNewDataSourceOfReduce(t *testing.T) {
 }
 
 func TestNewDataSourceOf(t *testing.T) {
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
 	sink := NewMemorySink[int]()
+	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
 	dataStream.Via(NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).To(sink)
 	err := dataStream.State().Wait()
 	if err != nil {

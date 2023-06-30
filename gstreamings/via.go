@@ -508,3 +508,10 @@ func Merge(outlets ...Transfer) Transfer {
 
 	return merged
 }
+
+func parallel(parallelism []uint) uint {
+	if len(parallelism) > 0 {
+		return parallelism[0]
+	}
+	return 1
+}
