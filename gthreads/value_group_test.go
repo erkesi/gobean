@@ -3,8 +3,6 @@ package gthreads
 import (
 	"strings"
 	"testing"
-
-	"github.com/erkesi/gobean/grecovers"
 )
 
 func TestGo(t *testing.T) {
@@ -12,9 +10,9 @@ func TestGo(t *testing.T) {
 	vg.SetLimit(3)
 	for i := 0; i < 100; i++ {
 		tmpI := i
-		vg.Go(grecovers.RecoverVGFn(func() (interface{}, error) {
+		vg.Go(func() (interface{}, error) {
 			return tmpI, nil
-		}))
+		})
 	}
 
 	res, err := vg.Wait()
@@ -33,12 +31,12 @@ func TestGoForErr(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		tmpI := i
-		vg.Go(grecovers.RecoverVGFn(func() (interface{}, error) {
+		vg.Go(func() (interface{}, error) {
 			if tmpI == 10 {
 				panic("err 10")
 			}
 			return tmpI, nil
-		}))
+		})
 	}
 
 	res, err := vg.Wait()

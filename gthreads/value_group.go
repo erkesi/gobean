@@ -3,6 +3,7 @@ package gthreads
 import (
 	"context"
 	"fmt"
+	"github.com/erkesi/gobean/grecovers"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -81,8 +82,10 @@ func (g *ValueGroup) Go(f func() (interface{}, error)) {
 	g.wg.Add(1)
 	go func() {
 		defer g.done()
-
-		if val, err := f(); err != nil {
+		val, err := grecovers.RecoverVGFn(func() (interface{}, error) {
+			return f()
+		})()
+		if err != nil {
 			g.errOnce.Do(func() {
 				g.err = err
 				if g.cancel != nil {
