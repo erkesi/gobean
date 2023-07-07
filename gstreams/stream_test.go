@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -473,6 +474,67 @@ func TestStream_Min(t *testing.T) {
 				assert.Equal(t, test.min, val)
 			})
 		}
+	})
+}
+
+func TestHeadErr(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		var result int
+		reduce, err := Reduce(From(context.TODO(), func(ctx context.Context, pipe chan<- int) error {
+			for i := 0; i < 10; i++ {
+				if i > 4 {
+					return fmt.Errorf("err4")
+				}
+				pipe <- i
+			}
+			return nil
+		}).Head(2), func(ctx context.Context, item int) (int, error) {
+			result += item
+			time.Sleep(10 * time.Millisecond)
+			return result, nil
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, 1, reduce)
+	})
+}
+
+func TestErr(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		var result int
+		reduce, err := Reduce(From(context.TODO(), func(ctx context.Context, pipe chan<- int) error {
+			for i := 0; i < 10; i++ {
+				if i > 2 {
+					return fmt.Errorf("err4")
+				}
+				pipe <- i
+			}
+			return nil
+		}).Head(4), func(ctx context.Context, item int) (int, error) {
+			result += item
+			return result, nil
+		})
+		assert.Equal(t, err.Error(), "err4")
+		assert.Equal(t, 3, reduce)
+	})
+}
+
+func TestPanic(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		var result int
+		reduce, err := Reduce(From(context.TODO(), func(ctx context.Context, pipe chan<- int) error {
+			for i := 0; i < 10; i++ {
+				if i > 2 {
+					panic("err4")
+				}
+				pipe <- i
+			}
+			return nil
+		}).Head(4), func(ctx context.Context, item int) (int, error) {
+			result += item
+			return result, nil
+		})
+		assert.Equal(t, true, strings.Contains(err.Error(), "err4"))
+		assert.Equal(t, 3, reduce)
 	})
 }
 

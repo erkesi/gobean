@@ -65,7 +65,9 @@ func (s *streamState) error() error {
 func (s *streamState) setError(err error) {
 	s.m.Lock()
 	defer s.m.Unlock()
-	s.err = err
+	if s.err == nil {
+		s.err = err
+	}
 }
 
 // From constructs a Stream[T] from the given GenerateFunc.
@@ -381,29 +383,39 @@ func (s Stream[T]) ForEach(fn ForEachFunc[T]) error {
 }
 
 // Head returns the first n elements in p.
-func (s Stream[T]) Head(n int64) Stream[T] {
+func (s Stream[T]) Head(n int) Stream[T] {
 	if n < 1 {
 		panic("n must be greater than 0")
 	}
 	source := make(chan T)
+	state := &streamState{}
 	go func() {
 		defer close(source)
+		i, num := 0, n
 		for item := range s.source {
-			if s.state.error() != nil {
+			i++
+			if err := s.state.error(); err != nil {
+				state.setError(err)
 				go cleanCh(s.source)
 				return
 			}
-			n--
-			if n >= 0 {
+			num--
+			if num >= 0 {
 				source <- item
 			}
-			if n == 0 {
+			if num == 0 {
 				go cleanCh(s.source)
 				return
 			}
 		}
+		if i+1 <= n {
+			if err := s.state.error(); err != nil {
+				state.setError(err)
+				return
+			}
+		}
 	}()
-	return _range(s.ctx, source, s.state)
+	return _range(s.ctx, source, state)
 }
 
 // Last returns the last item, or nil if no items.
