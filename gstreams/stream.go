@@ -388,14 +388,12 @@ func (s Stream[T]) Head(n int) Stream[T] {
 		panic("n must be greater than 0")
 	}
 	source := make(chan T)
-	state := &streamState{}
 	go func() {
 		defer close(source)
 		i, num := 0, n
 		for item := range s.source {
 			i++
 			if err := s.state.error(); err != nil {
-				state.setError(err)
 				go cleanCh(s.source)
 				return
 			}
@@ -408,14 +406,8 @@ func (s Stream[T]) Head(n int) Stream[T] {
 				return
 			}
 		}
-		if i+1 <= n {
-			if err := s.state.error(); err != nil {
-				state.setError(err)
-				return
-			}
-		}
 	}()
-	return _range(s.ctx, source, state)
+	return _range(s.ctx, source, s.state)
 }
 
 // Last returns the last item, or nil if no items.

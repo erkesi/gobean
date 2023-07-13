@@ -493,7 +493,7 @@ func TestHeadErr(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 			return result, nil
 		})
-		assert.Nil(t, err)
+		assert.Equal(t, err.Error(), "err4")
 		assert.Equal(t, 1, reduce)
 	})
 }
