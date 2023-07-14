@@ -253,11 +253,11 @@ func TestSort(t *testing.T) {
 func TestSplit(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assert.Panics(t, func() {
-			err := Split(Just(context.TODO(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 0).Done()
+			err := Chunk(Just(context.TODO(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 0).Done()
 			assert.Nil(t, err)
 		})
 		var chunks [][]int
-		err := Split(Just(context.TODO(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 4).ForEach(func(ctx context.Context, item []int) {
+		err := Chunk(Just(context.TODO(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 4).ForEach(func(ctx context.Context, item []int) {
 			chunk := item
 			chunks = append(chunks, chunk)
 		})

@@ -30,6 +30,8 @@ type (
 	KeyFunc[T, K any] func(ctx context.Context, item T) (K, error)
 	// MapFunc defines the method to map each element to another object in a Stream.
 	MapFunc[T, R any] func(ctx context.Context, item T) (R, error)
+	// FlatMapFunc defines the method to map each element to another object in a Stream.
+	FlatMapFunc[T, R any] func(ctx context.Context, item T) ([]R, error)
 	// LessFunc defines the method to compare the elements in a Stream.
 	LessFunc[T any] func(ctx context.Context, a, b T) (bool, error)
 	// PredicateFunc defines the method to predicate a Stream.
@@ -123,6 +125,20 @@ func Map[T, R any](s Stream[T], fn MapFunc[T, R], opts ...Option) Stream[R] {
 	}, opts...)
 }
 
+// FlatMap converts each item to another corresponding item, which means it's a 1:N model.
+func FlatMap[T, R any](s Stream[T], fn FlatMapFunc[T, R], opts ...Option) Stream[R] {
+	return Walk(s, func(ctx context.Context, item T, pipe chan<- R) error {
+		v, err := fn(ctx, item)
+		if err != nil {
+			return err
+		}
+		for _, o := range v {
+			pipe <- o
+		}
+		return nil
+	}, opts...)
+}
+
 // Reduce is a utility method to let the caller deal with the underlying channel.
 func Reduce[T, R any](s Stream[T], fn ReduceFunc[T, R]) (R, error) {
 	var r R
@@ -207,9 +223,9 @@ func Group[T any, K comparable](s Stream[T], fn KeyFunc[T, K]) Stream[[]T] {
 	return _range(s.ctx, source, s.state)
 }
 
-// Split splits the elements into chunk with size up to n,
+// Chunk splits the elements into chunk with size up to n,
 // might be less than n on tailing elements.
-func Split[T any](s Stream[T], n int) Stream[[]T] {
+func Chunk[T any](s Stream[T], n int) Stream[[]T] {
 	if n < 1 {
 		panic("n should be greater than 0")
 	}
