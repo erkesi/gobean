@@ -8,15 +8,14 @@ import (
 )
 
 func testStreams() {
-	mapFunc := func(item int) int64 { return int64(item) }
-	reduceFunc := func(pipe <-chan int64) (int64, error) {
+	reduceFunc := func(ctx context.Context, i int64) (int64, error) {
 		var t int64
-		for i := range pipe {
-			t += i
-		}
+		t += i
 		return t, nil
 	}
-	r, err := Reduce(Map(Just(1, 2, 3), mapFunc).Skip(1).Tail(2), reduceFunc)
+	r, err := Reduce(Map(Just(context.Background(), 1, 2, 3), func(ctx context.Context, item int) (int64, error) {
+		return int64(item), nil
+	}).Skip(1).Tail(2), reduceFunc)
 	if err != nil {
 		panic(err)
 	}
@@ -24,10 +23,10 @@ func testStreams() {
 }
 
 func main() {
-	//testNewDataStreamOf()
-	//testNewDataStreamOfCursor()
-	//testOptional()
-	//testStoreSink()
+	testNewDataStreamOf()
+	testNewDataStreamOfCursor()
+	testOptional()
+	testStoreSink()
 	testStreams()
 }
 
