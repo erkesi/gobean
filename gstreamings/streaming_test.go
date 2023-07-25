@@ -11,81 +11,75 @@ import (
 	"time"
 )
 
-func TestNewDataSourceOfPanic1(t *testing.T) {
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+func TestNewStreamingOfPanic1(t *testing.T) {
 	sink := NewMemorySink[int]()
-	dataStream.Via(NewFilter(func(ctx context.Context, i int) (bool, error) {
-		if i < 2 {
-			return true, nil
-		}
-		panic("panic-2")
-	})).To(sink)
-	err := dataStream.State().Wait()
-	if perr, ok := err.(*gerrors.PanicError); !ok {
-		t.Fatal(perr)
-	} else if !strings.Contains(perr.Error(), "panic-2") {
-		t.Fatal(perr)
+	err := NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).
+		Via(NewFilter(func(ctx context.Context, i int) (bool, error) {
+			if i < 2 {
+				return true, nil
+			}
+			panic("panic-2")
+		})).To(sink).Wait()
+	if pErr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(pErr)
+	} else if !strings.Contains(pErr.Error(), "panic-2") {
+		t.Fatal(pErr)
 	}
 }
 
-func TestNewDataSourceOfPanic2(t *testing.T) {
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+func TestNewStreamingOfPanic2(t *testing.T) {
 	sink := NewMemorySink[string]()
-	dataStream.Via(NewFlatMap(func(ctx context.Context, i int) ([]string, error) {
-		if i < 2 {
-			return []string{"1", "2"}, nil
-		}
-		panic("panic-2")
-	})).To(sink)
-	err := dataStream.State().Wait()
-	if perr, ok := err.(*gerrors.PanicError); !ok {
-		t.Fatal(perr)
-	} else if !strings.Contains(perr.Error(), "panic-2") {
-		t.Fatal(perr)
+	err := NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).
+		Via(NewFlatMap(func(ctx context.Context, i int) ([]string, error) {
+			if i < 2 {
+				return []string{"1", "2"}, nil
+			}
+			panic("panic-2")
+		})).To(sink).Wait()
+	if pErr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(pErr)
+	} else if !strings.Contains(pErr.Error(), "panic-2") {
+		t.Fatal(pErr)
 	}
 }
 
-func TestNewDataSourceOfPanic3(t *testing.T) {
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+func TestNewStreamingOfPanic3(t *testing.T) {
 	sink := NewMemorySink[string]()
-	dataStream.Via(NewMap(func(ctx context.Context, i int) (string, error) {
-		if i < 2 {
-			return "2", nil
-		}
-		panic("panic-2")
-	})).To(sink)
-	err := dataStream.State().Wait()
-	if perr, ok := err.(*gerrors.PanicError); !ok {
-		t.Fatal(perr)
-	} else if !strings.Contains(perr.Error(), "panic-2") {
-		t.Fatal(perr)
+	err := NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).
+		Via(NewMap(func(ctx context.Context, i int) (string, error) {
+			if i < 2 {
+				return "2", nil
+			}
+			panic("panic-2")
+		})).To(sink).Wait()
+	if pErr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(pErr)
+	} else if !strings.Contains(pErr.Error(), "panic-2") {
+		t.Fatal(pErr)
 	}
 }
 
-func TestNewDataSourceOfPanic4(t *testing.T) {
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+func TestNewStreamingOfPanic4(t *testing.T) {
 	sink := NewMemorySink[int]()
-	dataStream.Via(NewReduce(func(ctx context.Context, t, i int) (int, error) {
+	err := NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).Via(NewReduce(func(ctx context.Context, t, i int) (int, error) {
 		if i < 2 {
 			return t + i, nil
 		}
 		panic("panic-2")
-	})).To(sink)
-	err := dataStream.State().Wait()
-	if perr, ok := err.(*gerrors.PanicError); !ok {
-		t.Fatal(perr)
-	} else if !strings.Contains(perr.Error(), "panic-2") {
-		t.Fatal(perr)
+	})).To(sink).Wait()
+	if pErr, ok := err.(*gerrors.PanicError); !ok {
+		t.Fatal(pErr)
+	} else if !strings.Contains(pErr.Error(), "panic-2") {
+		t.Fatal(pErr)
 	}
 }
 
-func TestNewDataSourceOfReduce(t *testing.T) {
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
+func TestNewStreamingOfReduce(t *testing.T) {
 	sink := NewMemorySink[int]()
-	dataStream.Via(NewReduce(func(ctx context.Context, t, i int) (int, error) {
-		return t + i, nil
-	})).To(sink)
-	err := dataStream.State().Wait()
+	err := NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).
+		Via(NewReduce(func(ctx context.Context, t, i int) (int, error) {
+			return t + i, nil
+		})).To(sink).Wait()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,11 +88,11 @@ func TestNewDataSourceOfReduce(t *testing.T) {
 	}
 }
 
-func TestNewDataSourceOf(t *testing.T) {
+func TestNewStreamingOf(t *testing.T) {
 	sink := NewMemorySink[int]()
-	dataStream := NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
-	dataStream.Via(NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).To(sink)
-	err := dataStream.State().Wait()
+	err := NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).
+		Via(NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).
+		To(sink).Wait()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,14 +101,12 @@ func TestNewDataSourceOf(t *testing.T) {
 	}
 }
 
-func TestNewDataSource(t *testing.T) {
+func TestNewStreaming(t *testing.T) {
 	output := &tickerOutlet{FlowState: FlowStateWithContext(context.TODO())}
 	output.init()
-
-	dataStream := NewDataStream(output)
-
 	a := &A{}
-	transfers := FanOut(dataStream.Via(NewFlatMap(a.messageToStrs)), 2)
+	streaming := NewStreaming(output)
+	transfers := FanOut(streaming.Via(NewFlatMap(a.messageToStrs)), 2)
 	var sinks []*stdoutSink
 	for i, transfer := range transfers {
 		if i == 0 {
@@ -124,12 +116,10 @@ func TestNewDataSource(t *testing.T) {
 		sinks = append(sinks, sink)
 		transfer.To(sink)
 	}
-
-	err := dataStream.State().Wait()
+	err := streaming.Wait()
 	if err.Error() != "test err" {
-		t.Fatal(dataStream.State().error())
+		t.Fatal(err)
 	}
-
 	for _, sink := range sinks {
 		if atomic.LoadInt64(&sink.count) < 2 {
 			t.Fatal(atomic.LoadInt64(&sink.count))

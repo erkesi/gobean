@@ -17,8 +17,8 @@ type Outlet interface {
 	Out() <-chan interface{}
 }
 
-// Source represents a set of stream processing steps that has one open output.
-type Source interface {
+// Streaming represents a set of stream processing steps that has one open output.
+type Streaming interface {
 	Outlet
 	Via(Transfer) Transfer
 }
@@ -28,20 +28,21 @@ type Transfer interface {
 	Inlet
 	Outlet
 	Via(Transfer) Transfer
-	To(Sink)
+	To(Sink) Stater
 }
 
 type Stater interface {
-	State() *state
+	State() *State
+	Wait() error
 	Context() context.Context
-	setState(state *state)
+	setState(state *State)
 	SetStateErr(err error)
 }
 
 // Sink represents a set of stream processing steps that has one open input.
 type Sink interface {
 	Inlet
-	setSinkState(state *state)
+	setSinkState(state *State)
 }
 
 type Optional[T any] interface {
@@ -80,61 +81,65 @@ type MemorySink[T any] interface {
 }
 
 func FlowStateWithContext(ctx context.Context) FlowState {
-	return FlowState{_state: NewState(ctx)}
+	return FlowState{state: newState(ctx)}
 }
 
 type FlowState struct {
-	_state *state
+	state *State
 }
 
-func (bs *FlowState) State() *state {
-	return bs._state
+func (bs *FlowState) State() *State {
+	return bs.state
+}
+
+func (bs *FlowState) Wait() error {
+	return bs.state.Wait()
 }
 
 func (bs *FlowState) Context() context.Context {
-	return bs._state.ctx
+	return bs.state.ctx
 }
 
 func (bs *FlowState) Done() {
-	bs._state.wg.Done()
+	bs.state.wg.Done()
 }
 
-func (bs *FlowState) setState(s *state) {
-	bs._state = s
+func (bs *FlowState) setState(s *State) {
+	bs.state = s
 }
 
 func (bs *FlowState) SetStateErr(err error) {
-	bs._state.setErr(err)
+	bs.state.setErr(err)
 }
 
 func (bs *FlowState) HasStateErr() bool {
-	return bs._state.hasErr()
+	return bs.state.hasErr()
 }
 
-func (bs *FlowState) setSinkState(transState *state) {
+func (bs *FlowState) setSinkState(transState *State) {
 	transState.wg.Add(1)
-	bs._state = transState
+	bs.state = transState
 }
 
-func NewState(ctx context.Context) *state {
-	return &state{
+func newState(ctx context.Context) *State {
+	return &State{
 		ctx: ctx,
 	}
 }
 
-type state struct {
+type State struct {
 	rw  sync.RWMutex
 	ctx context.Context
 	wg  sync.WaitGroup
 	err error
 }
 
-func (s *state) Wait() error {
+func (s *State) Wait() error {
 	s.wg.Wait()
 	return s.error()
 }
 
-func (s *state) setErr(err error) {
+func (s *State) setErr(err error) {
 	s.rw.Lock()
 	defer s.rw.Unlock()
 	if s.err != nil {
@@ -143,12 +148,12 @@ func (s *state) setErr(err error) {
 	s.err = err
 }
 
-func (s *state) error() error {
+func (s *State) error() error {
 	s.rw.RLock()
 	defer s.rw.RUnlock()
 	return s.err
 }
 
-func (s *state) hasErr() bool {
+func (s *State) hasErr() bool {
 	return s.error() != nil
 }

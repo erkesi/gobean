@@ -35,7 +35,18 @@ func testOptional() {
 	for i := 0; i < 10; i++ {
 		list = append(list, i)
 	}
-	dataStream := gstreamings.NewDataStreamOfCursor[gstreamings.Optional[int]](context.TODO(), func(ctx context.Context) gstreamings.CursorNext[gstreamings.Optional[int]] {
+	reduce := func() func(ctx context.Context, opt gstreamings.Optional[int]) ([]int, error) {
+		total := 0
+		return func(ctx context.Context, opt gstreamings.Optional[int]) ([]int, error) {
+			if opt.IsPresent() {
+				total += opt.Get()
+				return nil, nil
+			}
+			return []int{total}, nil
+		}
+	}
+	sink := gstreamings.NewMemorySink[int]()
+	err := gstreamings.NewStreamingOfCursor[gstreamings.Optional[int]](context.TODO(), func(ctx context.Context) gstreamings.CursorNext[gstreamings.Optional[int]] {
 		return func(ctx context.Context) gstreamings.CursorNext[gstreamings.Optional[int]] {
 			next := 1
 			return func(ctx context.Context) ([]gstreamings.Optional[int], bool, error) {
@@ -57,20 +68,7 @@ func testOptional() {
 				return subList, hasNext, nil
 			}
 		}(ctx)
-	})
-	reduce := func() func(ctx context.Context, opt gstreamings.Optional[int]) ([]int, error) {
-		total := 0
-		return func(ctx context.Context, opt gstreamings.Optional[int]) ([]int, error) {
-			if opt.IsPresent() {
-				total += opt.Get()
-				return nil, nil
-			}
-			return []int{total}, nil
-		}
-	}
-	sink := gstreamings.NewMemorySink[int]()
-	dataStream.Via(gstreamings.NewFlatMap(reduce())).To(sink)
-	err := dataStream.State().Wait()
+	}).Via(gstreamings.NewFlatMap(reduce())).To(sink).Wait()
 	if err != nil {
 		panic(err)
 	}
@@ -84,8 +82,11 @@ func testStoreSink() {
 	for i := 0; i < 10; i++ {
 		list = append(list, i)
 	}
-
-	dataStream := gstreamings.NewDataStreamOfCursor[gstreamings.Optional[int]](context.TODO(), func(ctx context.Context) gstreamings.CursorNext[gstreamings.Optional[int]] {
+	sink := gstreamings.NewStoreSink[string](3, func(ctx context.Context, ss []string) error {
+		fmt.Printf("sink output: %v(%d)\n", ss, len(ss))
+		return nil
+	})
+	err := gstreamings.NewStreamingOfCursor[gstreamings.Optional[int]](context.TODO(), func(ctx context.Context) gstreamings.CursorNext[gstreamings.Optional[int]] {
 		return func(ctx context.Context) gstreamings.CursorNext[gstreamings.Optional[int]] {
 			next := 0
 			return func(ctx context.Context) ([]gstreamings.Optional[int], bool, error) {
@@ -107,32 +108,22 @@ func testStoreSink() {
 				return subList, hasNext, nil
 			}
 		}(ctx)
-	})
-
-	sink := gstreamings.NewStoreSink[string](3, func(ctx context.Context, ss []string) error {
-		fmt.Printf("sink output: %v(%d)\n", ss, len(ss))
-		return nil
-	})
-
-	dataStream.Via(gstreamings.NewFlatMap(func(ctx context.Context, opt gstreamings.Optional[int]) ([]string, error) {
+	}).Via(gstreamings.NewFlatMap(func(ctx context.Context, opt gstreamings.Optional[int]) ([]string, error) {
 		if opt.IsPresent() {
 			return []string{fmt.Sprint(opt.Get())}, nil
 		}
 		return nil, nil
-	})).To(sink)
-
-	err := dataStream.State().Wait()
+	})).To(sink).Wait()
 	if err != nil {
 		panic(err)
 	}
 }
 
 func testNewDataStreamOf() {
-	dataStream := gstreamings.NewDataStreamOfSlice(context.TODO(), []int{1, 2, 3})
 	sink := gstreamings.NewMemorySink[int]()
-	dataStream.Via(gstreamings.NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).To(sink)
-
-	err := dataStream.State().Wait()
+	err := gstreamings.NewStreamingOfSlice(context.TODO(), []int{1, 2, 3}).
+		Via(gstreamings.NewFilter(func(ctx context.Context, i int) (bool, error) { return i < 2, nil })).
+		To(sink).Wait()
 	if err != nil {
 		panic(err)
 	}
@@ -146,7 +137,8 @@ func testNewDataStreamOfCursor() {
 	for i := 0; i < 100; i++ {
 		list = append(list, i*10)
 	}
-	dataStream := gstreamings.NewDataStreamOfCursor[int](context.TODO(), func(ctx context.Context) gstreamings.CursorNext[int] {
+	sink := gstreamings.NewMemorySink[int]()
+	err := gstreamings.NewStreamingOfCursor[int](context.TODO(), func(ctx context.Context) gstreamings.CursorNext[int] {
 		return func(ctx context.Context) gstreamings.CursorNext[int] {
 			next := 1
 			return func(ctx context.Context) ([]int, bool, error) {
@@ -161,11 +153,8 @@ func testNewDataStreamOfCursor() {
 				return subList, next < len(list), nil
 			}
 		}(ctx)
-	})
-
-	sink := gstreamings.NewMemorySink[int]()
-	dataStream.Via(gstreamings.NewFilter(func(ctx context.Context, i int) (bool, error) { return true, nil })).To(sink)
-	err := dataStream.State().Wait()
+	}).Via(gstreamings.NewFilter(func(ctx context.Context, i int) (bool, error) { return true, nil })).
+		To(sink).Wait()
 	if err != nil {
 		panic(err)
 	}

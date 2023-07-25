@@ -4,16 +4,16 @@ import (
 	"context"
 )
 
-type dataStream struct {
+type _streaming struct {
 	FlowState
 	in <-chan interface{}
 }
 
-func NewDataStream(out Outlet) Source {
+func NewStreaming(out Outlet) Streaming {
 	if out.State() == nil {
 		panic("outlet state is nil")
 	}
-	ds := &dataStream{
+	ds := &_streaming{
 		in: out.Out(),
 	}
 	ds.setState(out.State())
@@ -22,8 +22,8 @@ func NewDataStream(out Outlet) Source {
 
 type CursorNext[T any] func(ctx context.Context) (items []T, hasNext bool, err error)
 
-func NewDataStreamOfCursor[T any](ctx context.Context, cursor func(ctx context.Context) CursorNext[T]) Source {
-	state := NewState(ctx)
+func NewStreamingOfCursor[T any](ctx context.Context, cursor func(ctx context.Context) CursorNext[T]) Streaming {
+	state := newState(ctx)
 	in := make(chan interface{})
 	go func() {
 		defer close(in)
@@ -45,14 +45,14 @@ func NewDataStreamOfCursor[T any](ctx context.Context, cursor func(ctx context.C
 			}
 		}
 	}()
-	return &dataStream{
-		FlowState: FlowState{_state: state},
+	return &_streaming{
+		FlowState: FlowState{state: state},
 		in:        in,
 	}
 }
 
-func NewDataStreamOfSlice[T any](ctx context.Context, items []T) Source {
-	state := NewState(ctx)
+func NewStreamingOfSlice[T any](ctx context.Context, items []T) Streaming {
+	state := newState(ctx)
 	in := make(chan interface{})
 	go func() {
 		for _, item := range items {
@@ -63,24 +63,24 @@ func NewDataStreamOfSlice[T any](ctx context.Context, items []T) Source {
 		}
 		close(in)
 	}()
-	return &dataStream{
-		FlowState: FlowState{_state: state},
+	return &_streaming{
+		FlowState: FlowState{state: state},
 		in:        in,
 	}
 }
 
-func (ds *dataStream) Out() <-chan interface{} {
+func (ds *_streaming) Out() <-chan interface{} {
 	return ds.in
 }
 
-func (ds *dataStream) Via(flow Transfer) Transfer {
+func (ds *_streaming) Via(flow Transfer) Transfer {
 	flow.setState(ds.State())
 	ds.doStream(ds, flow)
 	return flow
 }
 
 // doStream streams data from the outlet to inlet.
-func (ds *dataStream) doStream(outlet Outlet, inlet Inlet) {
+func (ds *_streaming) doStream(outlet Outlet, inlet Inlet) {
 	go func() {
 		for element := range outlet.Out() {
 			inlet.In() <- element

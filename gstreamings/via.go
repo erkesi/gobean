@@ -50,9 +50,10 @@ func (m *Map[T, R]) Via(flow Transfer) Transfer {
 }
 
 // To streams data to the given sink
-func (m *Map[T, R]) To(sink Sink) {
+func (m *Map[T, R]) To(sink Sink) Stater {
 	sink.setSinkState(m.State())
 	go m.transmit(sink)
+	return m
 }
 
 // Out returns an output channel for sending data
@@ -145,9 +146,10 @@ func (f *Filter[T]) Via(flow Transfer) Transfer {
 }
 
 // To streams data to the given sink
-func (f *Filter[T]) To(sink Sink) {
+func (f *Filter[T]) To(sink Sink) Stater {
 	sink.setSinkState(f.State())
 	go f.transmit(sink)
+	return f
 }
 
 // Out returns an output channel for sending data
@@ -240,9 +242,10 @@ func (fm *FlatMap[T, R]) Via(flow Transfer) Transfer {
 }
 
 // To streams data to the given sink
-func (fm *FlatMap[T, R]) To(sink Sink) {
+func (fm *FlatMap[T, R]) To(sink Sink) Stater {
 	sink.setSinkState(fm.State())
 	go fm.transmit(sink)
+	return fm
 }
 
 // Out returns an output channel for sending data
@@ -323,9 +326,10 @@ func (pt *passThrough) Via(flow Transfer) Transfer {
 }
 
 // To streams data to the given sink
-func (pt *passThrough) To(sink Sink) {
+func (pt *passThrough) To(sink Sink) Stater {
 	sink.setSinkState(pt.State())
 	go pt.transmit(sink)
+	return pt
 }
 
 // Out returns an output channel for sending data
@@ -395,9 +399,10 @@ func (r *Reduce[T]) Via(flow Transfer) Transfer {
 }
 
 // To streams data to the given sink
-func (r *Reduce[T]) To(sink Sink) {
+func (r *Reduce[T]) To(sink Sink) Stater {
 	sink.setSinkState(r.State())
 	go r.transmit(sink)
+	return r
 }
 
 // Out returns an output channel for sending data
