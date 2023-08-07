@@ -17,17 +17,17 @@ type Outlet interface {
 	Out() <-chan interface{}
 }
 
-// Streaming represents a set of stream processing steps that has one open output.
-type Streaming interface {
+// Source represents a set of stream processing steps that has one open output.
+type Source interface {
 	Outlet
-	Via(Transfer) Transfer
+	Via(Flow) Flow
 }
 
-// Transfer represents a set of stream processing steps that has one open input and one open output.
-type Transfer interface {
+// Flow represents a set of stream processing steps that has one open input and one open output.
+type Flow interface {
 	Inlet
 	Outlet
-	Via(Transfer) Transfer
+	Via(Flow) Flow
 	To(Sink) Stater
 }
 
@@ -88,37 +88,37 @@ type FlowState struct {
 	state *State
 }
 
-func (bs *FlowState) State() *State {
-	return bs.state
+func (fs *FlowState) State() *State {
+	return fs.state
 }
 
-func (bs *FlowState) Wait() error {
-	return bs.state.Wait()
+func (fs *FlowState) Wait() error {
+	return fs.state.Wait()
 }
 
-func (bs *FlowState) Context() context.Context {
-	return bs.state.ctx
+func (fs *FlowState) Context() context.Context {
+	return fs.state.ctx
 }
 
-func (bs *FlowState) Done() {
-	bs.state.wg.Done()
+func (fs *FlowState) Done() {
+	fs.state.wg.Done()
 }
 
-func (bs *FlowState) setState(s *State) {
-	bs.state = s
+func (fs *FlowState) setState(s *State) {
+	fs.state = s
 }
 
-func (bs *FlowState) SetStateErr(err error) {
-	bs.state.setErr(err)
+func (fs *FlowState) SetStateErr(err error) {
+	fs.state.setErr(err)
 }
 
-func (bs *FlowState) HasStateErr() bool {
-	return bs.state.hasErr()
+func (fs *FlowState) HasStateErr() bool {
+	return fs.state.hasErr()
 }
 
-func (bs *FlowState) setSinkState(transState *State) {
+func (fs *FlowState) setSinkState(transState *State) {
 	transState.wg.Add(1)
-	bs.state = transState
+	fs.state = transState
 }
 
 func newState(ctx context.Context) *State {

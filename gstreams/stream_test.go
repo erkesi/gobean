@@ -96,12 +96,21 @@ func TestDone(t *testing.T) {
 func TestDistinct(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		v, err := Reduce(Distinct(Just(context.TODO(), 4, 1, 3, 2, 3, 4), func(ctx context.Context, item int) (int, error) {
-			return item, nil
-		}), func(ctx context.Context, item int) (int, error) {
-			result += item
-			return result, nil
-		})
+		v, err :=
+			Reduce(
+				Distinct(
+					Just(context.TODO(), 4, 1, 3, 2, 3, 4),
+					func(ctx context.Context, item int) (int, error) {
+						return item, nil
+					},
+				).Filter(func(ctx context.Context, item int) (bool, error) {
+					return item < 5, nil
+				}),
+				func(ctx context.Context, item int) (int, error) {
+					result += item
+					return result, nil
+				},
+			)
 		assert.Equal(t, 10, v)
 		assert.Nil(t, err)
 	})
@@ -250,7 +259,7 @@ func TestSort(t *testing.T) {
 	})
 }
 
-func TestSplit(t *testing.T) {
+func TestChunk(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assert.Panics(t, func() {
 			err := Chunk(Just(context.TODO(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 0).Done()
@@ -495,6 +504,34 @@ func TestHeadErr(t *testing.T) {
 		})
 		assert.Equal(t, err.Error(), "err4")
 		assert.Equal(t, 1, reduce)
+	})
+}
+
+func TestCollect(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		rs, err := From(context.TODO(), func(ctx context.Context, pipe chan<- int) error {
+			for i := 0; i < 2; i++ {
+				pipe <- i
+			}
+			return nil
+		}).Collect()
+		assert.Nil(t, err)
+		assert.Equal(t, []int{0, 1}, rs)
+	})
+}
+
+func TestCollectToMap(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		rs, err := CollectToMap(From(context.TODO(), func(ctx context.Context, pipe chan<- int) error {
+			for i := 0; i < 2; i++ {
+				pipe <- i
+			}
+			return nil
+		}), func(ctx context.Context, item int) (int, error) {
+			return item, nil
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, map[int]int{0: 0, 1: 1}, rs)
 	})
 }
 

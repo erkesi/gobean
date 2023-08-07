@@ -104,18 +104,21 @@ func TestNewStreamingOf(t *testing.T) {
 func TestNewStreaming(t *testing.T) {
 	output := &tickerOutlet{FlowState: FlowStateWithContext(context.TODO())}
 	output.init()
-	a := &A{}
-	streaming := NewStreaming(output)
-	transfers := FanOut(streaming.Via(NewFlatMap(a.messageToStrs)), 2)
 	var sinks []*stdoutSink
-	for i, transfer := range transfers {
+	a := &A{}
+
+	streaming := NewStreaming(output)
+	flows := FanOut(streaming.Via(NewFlatMap(a.messageToStrs)), 2)
+
+	for i, flow := range flows {
 		if i == 0 {
-			transfer = transfer.Via(NewFlatMap(func(ctx context.Context, s string) ([]string, error) { return []string{s + "f"}, nil }, 1))
+			flow = flow.Via(NewFlatMap(func(ctx context.Context, s string) ([]string, error) { return []string{s + "f"}, nil }, 1))
 		}
 		sink := newStdoutSink(i)
+		flow.To(sink)
 		sinks = append(sinks, sink)
-		transfer.To(sink)
 	}
+
 	err := streaming.Wait()
 	if err.Error() != "test err" {
 		t.Fatal(err)

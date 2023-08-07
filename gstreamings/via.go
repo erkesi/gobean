@@ -24,8 +24,8 @@ type Map[T, R any] struct {
 	parallelism uint
 }
 
-// Verify Map satisfies the Transfer interface.
-var _ Transfer = (*Map[any, any])(nil)
+// Verify Map satisfies the Flow interface.
+var _ Flow = (*Map[any, any])(nil)
 
 // NewMap returns a new Map instance.
 //
@@ -43,7 +43,7 @@ func NewMap[T, R any](mapFunction MapFunction[T, R], parallelism ...uint) *Map[T
 }
 
 // Via streams data through the given flow
-func (m *Map[T, R]) Via(flow Transfer) Transfer {
+func (m *Map[T, R]) Via(flow Flow) Flow {
 	flow.setState(m.State())
 	go m.transmit(flow)
 	return flow
@@ -79,7 +79,6 @@ func (m *Map[T, R]) doStream() {
 		sem <- struct{}{}
 		go func(element T) {
 			defer func() { <-sem }()
-
 			if m.HasStateErr() {
 				return
 			}
@@ -119,8 +118,8 @@ type Filter[T any] struct {
 	parallelism     uint
 }
 
-// Verify Filter satisfies the Transfer interface.
-var _ Transfer = (*Filter[any])(nil)
+// Verify Filter satisfies the Flow interface.
+var _ Flow = (*Filter[any])(nil)
 
 // NewFilter returns a new Filter instance.
 //
@@ -139,7 +138,7 @@ func NewFilter[T any](filterPredicate FilterPredicate[T], parallelism ...uint) *
 }
 
 // Via streams data through the given flow
-func (f *Filter[T]) Via(flow Transfer) Transfer {
+func (f *Filter[T]) Via(flow Flow) Flow {
 	flow.setState(f.State())
 	go f.transmit(flow)
 	return flow
@@ -215,8 +214,8 @@ type FlatMap[T, R any] struct {
 	parallelism     uint
 }
 
-// Verify FlatMap satisfies the Transfer interface.
-var _ Transfer = (*FlatMap[any, any])(nil)
+// Verify FlatMap satisfies the Flow interface.
+var _ Flow = (*FlatMap[any, any])(nil)
 
 // NewFlatMap returns a new FlatMap instance.
 //
@@ -235,7 +234,7 @@ func NewFlatMap[T, R any](flatMapFunction FlatMapFunction[T, R], parallelism ...
 }
 
 // Via streams data through the given flow
-func (fm *FlatMap[T, R]) Via(flow Transfer) Transfer {
+func (fm *FlatMap[T, R]) Via(flow Flow) Flow {
 	flow.setState(fm.State())
 	go fm.transmit(flow)
 	return flow
@@ -304,8 +303,8 @@ type passThrough struct {
 	out chan interface{}
 }
 
-// Verify passThrough satisfies the Transfer interface.
-var _ Transfer = (*passThrough)(nil)
+// Verify passThrough satisfies the Flow interface.
+var _ Flow = (*passThrough)(nil)
 
 // newPassThrough returns a new passThrough instance.
 func newPassThrough() *passThrough {
@@ -319,7 +318,7 @@ func newPassThrough() *passThrough {
 }
 
 // Via streams data through the given flow
-func (pt *passThrough) Via(flow Transfer) Transfer {
+func (pt *passThrough) Via(flow Flow) Flow {
 	flow.setState(pt.State())
 	go pt.transmit(flow)
 	return flow
@@ -375,8 +374,8 @@ type Reduce[T any] struct {
 	lastReduced    interface{}
 }
 
-// Verify Reduce satisfies the Transfer interface.
-var _ Transfer = (*Reduce[any])(nil)
+// Verify Reduce satisfies the Flow interface.
+var _ Flow = (*Reduce[any])(nil)
 
 // NewReduce returns a new Reduce instance.
 //
@@ -392,7 +391,7 @@ func NewReduce[T any](reduceFunction ReduceFunction[T]) *Reduce[T] {
 }
 
 // Via streams data through the given flow
-func (r *Reduce[T]) Via(flow Transfer) Transfer {
+func (r *Reduce[T]) Via(flow Flow) Flow {
 	flow.setState(r.State())
 	go r.transmit(flow)
 	return flow
@@ -445,7 +444,7 @@ func (r *Reduce[T]) doStream() {
 }
 
 // Split splits the stream into two flows according to the given boolean predicate.
-func Split[T any](outlet Outlet, predicate func(T) bool) [2]Transfer {
+func Split[T any](outlet Outlet, predicate func(T) bool) [2]Flow {
 	condTrue := newPassThrough()
 	condTrue.setState(outlet.State())
 	condFalse := newPassThrough()
@@ -462,13 +461,13 @@ func Split[T any](outlet Outlet, predicate func(T) bool) [2]Transfer {
 		close(condFalse.In())
 	}()
 
-	return [...]Transfer{condTrue, condFalse}
+	return [...]Flow{condTrue, condFalse}
 }
 
 // FanOut creates a number of identical flows from the single outlet.
 // This can be useful when writing to multiple sinks is required.
-func FanOut(outlet Outlet, magnitude int) []Transfer {
-	var out []Transfer
+func FanOut(outlet Outlet, magnitude int) []Flow {
+	var out []Flow
 	for i := 0; i < magnitude; i++ {
 		pt := newPassThrough()
 		pt.setState(outlet.State())
@@ -490,7 +489,7 @@ func FanOut(outlet Outlet, magnitude int) []Transfer {
 }
 
 // Merge merges multiple flows into a single flow.
-func Merge(outlets ...Transfer) Transfer {
+func Merge(outlets ...Flow) Flow {
 	merged := newPassThrough()
 	merged.setState(outlets[0].State())
 	var wg sync.WaitGroup

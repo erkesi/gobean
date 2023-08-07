@@ -398,6 +398,37 @@ func (s Stream[T]) ForEach(fn ForEachFunc[T]) error {
 	return s.state.error()
 }
 
+// Collect seals the Stream[T] with the collect on each item.
+func (s Stream[T]) Collect() ([]T, error) {
+	var ts []T
+	for item := range s.source {
+		if err := s.state.error(); err != nil {
+			go cleanCh(s.source)
+			return ts, err
+		}
+		ts = append(ts, item)
+	}
+	return ts, s.state.error()
+}
+
+// CollectToMap map the elements into different value based on their key.
+func CollectToMap[T any, K comparable](s Stream[T], fn KeyFunc[T, K]) (map[K]T, error) {
+	m := make(map[K]T)
+	for item := range s.source {
+		if err := s.state.error(); err != nil {
+			go cleanCh(s.source)
+			return m, err
+		}
+		if k, err := fn(s.ctx, item); err != nil {
+			go cleanCh(s.source)
+			return m, err
+		} else {
+			m[k] = item
+		}
+	}
+	return m, s.state.error()
+}
+
 // Head returns the first n elements in p.
 func (s Stream[T]) Head(n int) Stream[T] {
 	if n < 1 {

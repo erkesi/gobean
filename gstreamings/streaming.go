@@ -9,7 +9,7 @@ type _streaming struct {
 	in <-chan interface{}
 }
 
-func NewStreaming(out Outlet) Streaming {
+func NewStreaming(out Outlet) Source {
 	if out.State() == nil {
 		panic("outlet state is nil")
 	}
@@ -22,7 +22,7 @@ func NewStreaming(out Outlet) Streaming {
 
 type CursorNext[T any] func(ctx context.Context) (items []T, hasNext bool, err error)
 
-func NewStreamingOfCursor[T any](ctx context.Context, cursor func(ctx context.Context) CursorNext[T]) Streaming {
+func NewStreamingOfCursor[T any](ctx context.Context, cursor func(ctx context.Context) CursorNext[T]) Source {
 	state := newState(ctx)
 	in := make(chan interface{})
 	go func() {
@@ -51,7 +51,7 @@ func NewStreamingOfCursor[T any](ctx context.Context, cursor func(ctx context.Co
 	}
 }
 
-func NewStreamingOfSlice[T any](ctx context.Context, items []T) Streaming {
+func NewStreamingOfSlice[T any](ctx context.Context, items []T) Source {
 	state := newState(ctx)
 	in := make(chan interface{})
 	go func() {
@@ -73,7 +73,7 @@ func (ds *_streaming) Out() <-chan interface{} {
 	return ds.in
 }
 
-func (ds *_streaming) Via(flow Transfer) Transfer {
+func (ds *_streaming) Via(flow Flow) Flow {
 	flow.setState(ds.State())
 	ds.doStream(ds, flow)
 	return flow
